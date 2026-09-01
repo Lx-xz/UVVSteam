@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapa do Projeto &mdash; Classic Snakes Game (WinForms C#)</title>
+
+<!-- Prism.js (syntax highlight) via CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#f6f7f9; --surface:#ffffff; --border:#e2e5ea; --text:#1c2024;
+    --muted:#5b6470; --accent:#1f7a3d; --accent-weak:#e6f2ea; --danger:#b3261e;
+    --code-bg:#2d2d2d; --shadow:0 1px 3px rgba(0,0,0,.08),0 6px 20px rgba(0,0,0,.06);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f1216; --surface:#171b21; --border:#2a313b; --text:#e7ebf0;
+    --muted:#9aa4b2; --accent:#4ecb71; --accent-weak:#16311f; --danger:#ff6b5e;
+    --code-bg:#1b1f24; --shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0f1216; --surface:#171b21; --border:#2a313b; --text:#e7ebf0;
+      --muted:#9aa4b2; --accent:#4ecb71; --accent-weak:#16311f; --danger:#ff6b5e;
+      --code-bg:#1b1f24; --shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  .wrap{max-width:960px; margin:0 auto; padding:24px 20px 80px}
+  header{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap}
+  h1{font-size:1.5rem; margin:.2em 0 .1em}
+  h2{font-size:1.2rem; margin:1.8em 0 .6em; border-bottom:1px solid var(--border); padding-bottom:.3em}
+  h3{font-size:1rem; margin:1.4em 0 .4em}
+  .sub{color:var(--muted); margin:0 0 8px}
+  a{color:var(--accent)}
+
+  .themeBtn{
+    border:1px solid var(--border); background:var(--surface); color:var(--text);
+    border-radius:999px; padding:8px 14px; cursor:pointer; font-size:.85rem; box-shadow:var(--shadow);
+  }
+
+  nav.tabs{display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 8px}
+  nav.tabs button{
+    border:1px solid var(--border); background:var(--surface); color:var(--muted);
+    padding:8px 14px; border-radius:10px; cursor:pointer; font-size:.9rem; font-weight:600;
+  }
+  nav.tabs button[aria-selected="true"]{
+    background:var(--accent-weak); color:var(--accent); border-color:var(--accent);
+  }
+
+  section[role="tabpanel"]{display:none; animation:fade .18s ease}
+  section[role="tabpanel"].active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(4px)}to{opacity:1}}
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:18px 20px; margin:14px 0; box-shadow:var(--shadow);
+  }
+  .card h3{margin-top:0}
+  .tag{
+    display:inline-block; font-size:.72rem; font-weight:700; letter-spacing:.03em;
+    background:var(--accent-weak); color:var(--accent); border-radius:6px; padding:2px 8px; margin-left:6px;
+  }
+  .tag.warn{background:transparent; color:var(--danger); border:1px solid var(--danger)}
+
+  ul{padding-left:1.2em} li{margin:.28em 0}
+  code:not([class*="language-"]){
+    background:var(--accent-weak); color:var(--accent); padding:1px 6px; border-radius:5px; font-size:.88em;
+  }
+  pre[class*="language-"]{border-radius:12px; font-size:.82rem; box-shadow:var(--shadow); margin:.6em 0}
+
+  table{width:100%; border-collapse:collapse; margin:1em 0; font-size:.9rem; display:block; overflow-x:auto}
+  th,td{border:1px solid var(--border); padding:8px 10px; text-align:left; vertical-align:top}
+  th{background:var(--accent-weak); color:var(--accent)}
+
+  .tree{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.85rem; line-height:1.7; white-space:pre; overflow-x:auto}
+
+  .mermaid{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin:14px 0; overflow-x:auto; box-shadow:var(--shadow)}
+
+  .checklist{list-style:none; padding:0}
+  .checklist li{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin:8px 0}
+  .checklist li::before{content:"\2610  "; color:var(--muted)}
+
+  footer{margin-top:40px; color:var(--muted); font-size:.85rem; text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>&#x1F40D; Mapa do Projeto</h1>
+      <p class="sub">Classic Snakes Game Tutorial &mdash; MOO ICT &middot; C# / .NET / Windows Forms</p>
+    </div>
+    <button class="themeBtn" id="themeBtn" type="button">&#x1F319; Alternar tema</button>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true"  data-tab="overview">Visão geral</button>
+    <button role="tab" aria-selected="false" data-tab="files">Arquivos</button>
+    <button role="tab" aria-selected="false" data-tab="loop">Game Loop</button>
+    <button role="tab" aria-selected="false" data-tab="arch">Arquitetura</button>
+    <button role="tab" aria-selected="false" data-tab="improve">Melhorias</button>
+  </nav>
+
+  <!-- ==================== VISÃO GERAL ==================== -->
+  <section role="tabpanel" id="overview" class="active">
+    <h2>O que é</h2>
+    <p>
+      Jogo da cobrinha clássico feito como tutorial, usando <strong>Windows Forms</strong>.
+      A tela é um <code>PictureBox</code> (<code>picCanvas</code>) onde tudo é desenhado
+      manualmente no evento <code>Paint</code>. Um <code>Timer</code> dispara o
+      <em>game loop</em> e a cobra é uma <code>List&lt;Circle&gt;</code> de células numa grade.
+    </p>
+
+    <div class="card">
+      <h3>Stack</h3>
+      <ul>
+        <li><strong>Linguagem:</strong> C#</li>
+        <li><strong>Framework de UI:</strong> Windows Forms (<code>System.Windows.Forms</code>)</li>
+        <li><strong>Alvos:</strong> o <code>.csproj</code> aponta para <code>net10.0-windows</code> (há binários de <code>net8.0-windows</code> também)</li>
+        <li><strong>Desenho:</strong> GDI+ (<code>System.Drawing</code>) &mdash; <code>Graphics.FillEllipse</code></li>
+        <li><strong>Sem dependências externas</strong> (nenhum pacote NuGet de jogo)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Como rodar</h3>
+      <pre><code class="language-bash"># com o SDK do .NET instalado, a partir da pasta do projeto:
+cd "Classic Snakes Game Tutorial - MOO ICT"
+dotnet run
+
+# ou abrir a solução no Visual Studio e apertar F5:
+#   "Classic Snakes Game Tutorial - MOO ICT.sln"</code></pre>
+      <p class="sub">Só roda no Windows (Windows Forms).</p>
+    </div>
+
+    <h3>Estrutura de arquivos</h3>
+    <div class="tree">Classic Snakes Game Tutorial - MOO ICT/
+├── Program.cs            → ponto de entrada (Main)
+├── Form1.cs              → toda a lógica do jogo
+├── Form1.Designer.cs     → controles da UI gerados pelo Designer
+├── Form1.resx            → recursos da Form
+├── Circle.cs             → modelo: uma célula (X, Y) da grade
+├── Settings.cs           → configurações/estado global (estático)
+├── Properties/           → Resources / Settings gerados
+└── *.csproj / *.sln      → projeto e solução</div>
+  </section>
+
+  <!-- ==================== ARQUIVOS ==================== -->
+  <section role="tabpanel" id="files">
+    <h2>Arquivos de código</h2>
+
+    <div class="card">
+      <h3><code>Program.cs</code> <span class="tag">entrada</span></h3>
+      <p>Boilerplate padrão do WinForms. Liga os visual styles e sobe a <code>Form1</code>.</p>
+      <pre><code class="language-csharp">[STAThread]
+static void Main()
+{
+    Application.EnableVisualStyles();
+    Application.SetCompatibleTextRenderingDefault(false);
+    Application.Run(new Form1());
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <h3><code>Circle.cs</code> <span class="tag">modelo</span></h3>
+      <p>
+        Representa <strong>uma célula da grade</strong> (não pixels): só <code>X</code> e
+        <code>Y</code> inteiros. Cada segmento da cobra e a comida são um <code>Circle</code>.
+        O nome engana &mdash; não tem nada de círculo, é só um par de coordenadas.
+      </p>
+      <pre><code class="language-csharp">class Circle
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+    public Circle() { X = 0; Y = 0; }
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <h3><code>Settings.cs</code> <span class="tag">config</span> <span class="tag warn">estado global</span></h3>
+      <p>
+        Membros <strong>estáticos</strong>: <code>Width</code>/<code>Height</code> = 16
+        (tamanho da célula em pixels) e <code>directions</code> (string:
+        <code>"left"</code>/<code>"right"</code>/<code>"up"</code>/<code>"down"</code>).
+        O construtor só existe para preencher esses valores &mdash; por isso o
+        <code>new Settings()</code> "solto" dentro de <code>Form1()</code>.
+      </p>
+      <pre><code class="language-csharp">class Settings
+{
+    public static int Width { get; set; }
+    public static int Height { get; set; }
+    public static string directions;
+
+    public Settings()
+    {
+        Width = 16;
+        Height = 16;
+        directions = "left";
+    }
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <h3><code>Form1.Designer.cs</code> <span class="tag">UI</span></h3>
+      <p>Gerado pelo Designer. Define os controles e liga os eventos:</p>
+      <table>
+        <tr><th>Controle</th><th>Tipo</th><th>Papel</th><th>Evento</th></tr>
+        <tr><td><code>picCanvas</code></td><td>PictureBox</td><td>área de jogo (580&times;680)</td><td><code>Paint → UpdatePictureBoxGraphics</code></td></tr>
+        <tr><td><code>startButton</code></td><td>Button</td><td>iniciar/reiniciar</td><td><code>Click → StartGame</code></td></tr>
+        <tr><td><code>snapButton</code></td><td>Button</td><td>salvar screenshot .jpg</td><td><code>Click → TakeSnapShot</code></td></tr>
+        <tr><td><code>txtScore</code> / <code>txtHighScore</code></td><td>Label</td><td>placar (apesar do prefixo <code>txt</code>)</td><td>&mdash;</td></tr>
+        <tr><td><code>gameTimer</code></td><td>Timer</td><td>game loop, <code>Interval = 10</code> ms</td><td><code>Tick → GameTimerEvent</code></td></tr>
+        <tr><td><code>Form1</code></td><td>Form</td><td>captura teclado</td><td><code>KeyDown/KeyUp → KeyIsDown/KeyIsUp</code></td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3><code>Form1.cs</code> <span class="tag">lógica</span></h3>
+      <p><strong>Campos:</strong></p>
+      <ul>
+        <li><code>List&lt;Circle&gt; Snake</code> &mdash; índice 0 é a cabeça, resto é o corpo</li>
+        <li><code>Circle food</code> &mdash; posição da comida</li>
+        <li><code>int maxWidth / maxHeight</code> &mdash; limite da grade <em>em células</em></li>
+        <li><code>int score / highScore</code></li>
+        <li><code>bool goLeft, goRight, goUp, goDown</code> &mdash; teclas pressionadas</li>
+      </ul>
+      <p><strong>Métodos:</strong></p>
+      <table>
+        <tr><th>Método</th><th>O que faz</th></tr>
+        <tr><td><code>KeyIsDown / KeyIsUp</code></td><td>ligam/desligam as flags <code>go*</code>. No KeyDown já bloqueiam a inversão de 180° comparando com <code>Settings.directions</code>.</td></tr>
+        <tr><td><code>StartGame</code></td><td>só chama <code>RestartGame()</code>.</td></tr>
+        <tr><td><code>RestartGame</code></td><td>calcula <code>maxWidth/maxHeight</code>, limpa a cobra, zera o placar, cria a cabeça em <code>(10,5)</code> + <strong>10 corpos</strong> em <code>(0,0)</code>, sorteia a comida, dá <code>gameTimer.Start()</code>.</td></tr>
+        <tr><td><code>GameTimerEvent</code></td><td>o <em>game loop</em> (ver aba "Game Loop").</td></tr>
+        <tr><td><code>UpdatePictureBoxGraphics</code></td><td>desenha cada segmento como elipse (cabeça preta, corpo verde-escuro) e a comida vermelha, multiplicando célula &times; <code>Settings.Width/Height</code>.</td></tr>
+        <tr><td><code>EatFood</code></td><td><code>score++</code>, adiciona um <code>Circle</code> na posição do último segmento, re-sorteia a comida.</td></tr>
+        <tr><td><code>GameOver</code></td><td>para o timer, reabilita os botões, atualiza <code>highScore</code>.</td></tr>
+        <tr><td><code>TakeSnapShot</code></td><td>adiciona um Label de legenda no canvas, abre <code>SaveFileDialog</code>, usa <code>picCanvas.DrawToBitmap</code> e salva JPEG.</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ==================== GAME LOOP ==================== -->
+  <section role="tabpanel" id="loop">
+    <h2>O game loop (<code>GameTimerEvent</code>)</h2>
+    <p>Roda a cada <strong>10 ms</strong>. A cada tick:</p>
+
+    <pre class="mermaid">
+graph TD
+    A[Timer Tick a cada 10 ms] --> B[Ler teclas e definir a direcao]
+    B --> C[Percorrer a cobra de tras para frente]
+    C --> D{E a cabeca}
+    D -->|sim| E[Mover a cabeca uma celula na direcao atual]
+    E --> F[Se passou da borda reaparece do lado oposto]
+    F --> G{A cabeca esta sobre a comida}
+    G -->|sim| H[EatFood cresce um segmento e sorteia nova comida]
+    G -->|nao| I{A cabeca esta sobre o proprio corpo}
+    H --> I
+    I -->|sim| J[GameOver para o timer e atualiza o recorde]
+    I -->|nao| K[Segue para o proximo segmento]
+    D -->|nao| L[O segmento copia a posicao do segmento da frente]
+    L --> K
+    K --> M[picCanvas Invalidate]
+    M --> N[O evento Paint redesenha tudo]
+    </pre>
+    <p class="sub">A cabeça (índice 0) move sozinha; cada outro segmento apenas copia a posição
+    anterior do segmento da frente. Ao final, <code>Invalidate()</code> dispara o <code>Paint</code>.</p>
+
+    <h3>Por que percorrer de trás para frente?</h3>
+    <p>
+      Assim cada segmento copia a posição <em>antiga</em> do segmento da frente antes
+      que ela seja sobrescrita &mdash; é o efeito "vagões de trem". A cabeça (índice 0)
+      é a única que realmente decide para onde ir.
+    </p>
+
+    <h3>Trecho central</h3>
+    <pre><code class="language-csharp">for (int i = Snake.Count - 1; i >= 0; i--)
+{
+    if (i == 0)
+    {
+        switch (Settings.directions)
+        {
+            case "left":  Snake[i].X--; break;
+            case "right": Snake[i].X++; break;
+            case "up":    Snake[i].Y--; break;
+            case "down":  Snake[i].Y++; break;
+        }
+
+        // wrap-around nas bordas
+        if (Snake[i].X < 0)         Snake[i].X = maxWidth;
+        if (Snake[i].X > maxWidth)  Snake[i].X = 0;
+        if (Snake[i].Y < 0)         Snake[i].Y = maxHeight;
+        if (Snake[i].Y > maxHeight) Snake[i].Y = 0;
+
+        if (Snake[i].X == food.X && Snake[i].Y == food.Y) EatFood();
+
+        for (int j = 1; j < Snake.Count; j++)
+            if (Snake[i].X == Snake[j].X && Snake[i].Y == Snake[j].Y)
+                GameOver();
+    }
+    else
+    {
+        Snake[i].X = Snake[i - 1].X;
+        Snake[i].Y = Snake[i - 1].Y;
+    }
+}
+picCanvas.Invalidate();</code></pre>
+
+    <h3>Eventos WinForms envolvidos</h3>
+    <table>
+      <tr><th>Evento</th><th>Handler</th><th>Quando dispara</th></tr>
+      <tr><td><code>Timer.Tick</code></td><td><code>GameTimerEvent</code></td><td>a cada 10 ms enquanto o jogo roda</td></tr>
+      <tr><td><code>PictureBox.Paint</code></td><td><code>UpdatePictureBoxGraphics</code></td><td>após cada <code>Invalidate()</code></td></tr>
+      <tr><td><code>Form.KeyDown / KeyUp</code></td><td><code>KeyIsDown / KeyIsUp</code></td><td>ao pressionar/soltar setas</td></tr>
+      <tr><td><code>Button.Click</code></td><td><code>StartGame</code> / <code>TakeSnapShot</code></td><td>ao clicar</td></tr>
+    </table>
+  </section>
+
+  <!-- ==================== ARQUITETURA ==================== -->
+  <section role="tabpanel" id="arch">
+    <h2>Arquitetura das classes</h2>
+
+    <pre class="mermaid">
+classDiagram
+    class Program {
+        Main()
+    }
+    class Form1 {
+        List Snake
+        Circle food
+        int maxWidth
+        int maxHeight
+        int score
+        int highScore
+        GameTimerEvent()
+        UpdatePictureBoxGraphics()
+        RestartGame()
+        EatFood()
+        GameOver()
+        TakeSnapShot()
+    }
+    class Circle {
+        int X
+        int Y
+    }
+    class Settings {
+        int Width
+        int Height
+        string directions
+    }
+    Program ..> Form1
+    Form1 --> Circle
+    Form1 ..> Settings
+    </pre>
+    <p class="sub"><code>Program</code> sobe a <code>Form1</code>; a <code>Form1</code> contém a lista de
+    <code>Circle</code> (cobra + comida) e lê/escreve o estado estático de <code>Settings</code>.</p>
+
+    <h3>Observações de design</h3>
+    <ul>
+      <li>Toda a lógica vive dentro da <code>Form1</code> &mdash; UI e regras de jogo acopladas.</li>
+      <li><code>Settings</code> é um <em>singleton implícito</em> via <code>static</code>: qualquer parte do código lê e escreve <code>Settings.directions</code>.</li>
+      <li>Não há camada de "modelo de jogo" testável isoladamente.</li>
+      <li>O render é <em>imediato</em>: o estado muda no <code>Tick</code>, o <code>Paint</code> só lê e desenha.</li>
+    </ul>
+
+    <pre class="mermaid">
+graph LR
+    SB[startButton] -->|Click| RG[RestartGame]
+    NB[snapButton] -->|Click| TS[TakeSnapShot]
+    GT[gameTimer] -->|Tick| GL[GameTimerEvent]
+    GL --> EF[EatFood]
+    GL --> GO[GameOver]
+    GL -->|Invalidate| PC[picCanvas]
+    PC -->|Paint| PT[UpdatePictureBoxGraphics]
+    EF --> SC[txtScore]
+    GO --> HS[txtHighScore]
+    </pre>
+  </section>
+
+  <!-- ==================== MELHORIAS ==================== -->
+  <section role="tabpanel" id="improve">
+    <h2>Onde melhorar</h2>
+
+    <h3>&#x1F41B; Bugs e corretude</h3>
+    <ul class="checklist">
+      <li><strong>Comida pode nascer em cima da cobra</strong> &mdash; <code>EatFood</code> / <code>RestartGame</code> sorteiam sem verificar posições ocupadas.</li>
+      <li><strong>Comida nunca aparece nas bordas</strong> &mdash; <code>rand.Next(2, maxWidth)</code> exclui colunas 0, 1 e a última. Deveria ser <code>rand.Next(0, maxWidth + 1)</code>.</li>
+      <li><strong>Inversão de 180° ainda passa</strong> se duas teclas forem lidas no mesmo tick. A direção deveria ser <em>travada</em> no início do tick, comparando com a direção realmente aplicada no tick anterior.</li>
+      <li><strong><code>maxWidth/maxHeight</code> calculados só no start</strong> &mdash; se a janela for redimensionada, a grade e o wrap ficam errados. Recalcular em <code>Resize</code>.</li>
+      <li><strong><code>GameOver</code> não para o loop imediatamente</strong> &mdash; o <code>for</code> continua após chamar <code>GameOver()</code>; falta um <code>return</code>/<code>break</code>.</li>
+      <li><strong>Sem condição de vitória</strong> quando a grade enche.</li>
+      <li><strong><code>TakeSnapShot</code>:</strong> fonte <code>"Ariel"</code> (erro de digitação de <em>Arial</em>); <code>Bitmap</code>, <code>Graphics</code> e o <code>Label</code> não recebem <code>Dispose()</code> (vazamento de GDI); se o usuário cancela o diálogo, o Label de legenda fica grudado no canvas.</li>
+      <li><strong><code>highScore</code> só existe em memória</strong> &mdash; some ao fechar. Persistir em <code>Properties.Settings</code> ou arquivo.</li>
+    </ul>
+
+    <h3>&#x26A1; Performance e responsividade</h3>
+    <ul class="checklist">
+      <li><strong><code>Timer.Interval = 10</code> (100 Hz)</strong> &mdash; excessivo e deixa a cobra dependente da CPU. Usar ~120 ms e separar "velocidade do jogo" de "taxa de quadros".</li>
+      <li><strong><code>PictureBox</code> sem double buffering</strong> pode piscar. Usar um <code>Panel</code>/controle custom com <code>DoubleBuffered = true</code> ou <code>SetStyle(...)</code>.</li>
+      <li><strong>Colisão O(n) por tick</strong> &mdash; ok nesse tamanho, mas um <code>HashSet&lt;(int,int)&gt;</code> das células ocupadas resolve em O(1) e ainda ajuda a sortear a comida.</li>
+      <li><strong><code>Invalidate()</code> repinta tudo</strong> &mdash; poderia invalidar só os retângulos que mudaram (cabeça, cauda antiga, comida).</li>
+    </ul>
+
+    <h3>&#x1F9F1; Design e legibilidade</h3>
+    <ul class="checklist">
+      <li><strong>Separar lógica da UI</strong> &mdash; extrair uma classe <code>Game</code>/<code>Board</code> sem dependência de WinForms, testável com xUnit.</li>
+      <li><strong><code>Settings.directions</code> deveria ser <code>enum Direction</code></strong>, não <code>string</code> &mdash; elimina o <code>switch</code> por texto e erros de digitação.</li>
+      <li><strong><code>Settings</code> mistura constante com estado</strong> &mdash; tamanho da célula é configuração; direção é estado de partida. Separar.</li>
+      <li><strong>Evitar <code>static</code> mutável</strong> &mdash; dificulta reiniciar e testar. Passar o estado por instância.</li>
+      <li><strong><code>Circle</code> como <code>record struct</code></strong> &mdash; imutável e com igualdade por valor, simplifica a checagem de colisão (<code>Snake[i] == food</code>).</li>
+      <li><strong><em>Magic numbers</em></strong> (10 corpos iniciais, cabeça em 10,5, <code>Interval</code>, cores) &mdash; extrair para constantes nomeadas.</li>
+      <li><strong>Nomes enganosos</strong> &mdash; <code>txtScore</code>/<code>txtHighScore</code> são <code>Label</code>; <code>Circle</code> é uma coordenada.</li>
+      <li><strong><code>using</code> não usados</strong> (<code>System.Linq</code>, <code>System.Data</code>, etc.).</li>
+      <li><strong>Faltam recursos comuns</strong> &mdash; pausa, menu, dificuldade, som, "game over" visível na tela.</li>
+    </ul>
+
+    <div class="card">
+      <h3>Exemplo: direção como enum + trava por tick</h3>
+      <pre><code class="language-csharp">enum Direction { Left, Right, Up, Down }
+
+Direction _current = Direction.Left;   // aplicada no último tick
+Direction _next    = Direction.Left;   // pedida pelo teclado
+
+bool IsOpposite(Direction a, Direction b) =>
+    (a == Direction.Left  && b == Direction.Right) ||
+    (a == Direction.Right && b == Direction.Left)  ||
+    (a == Direction.Up    && b == Direction.Down)  ||
+    (a == Direction.Down  && b == Direction.Up);
+
+void OnKey(Direction requested)
+{
+    if (!IsOpposite(_current, requested)) _next = requested;
+}
+
+void Tick()
+{
+    _current = _next;          // trava aqui, uma vez por tick
+    // ... move a cabeça conforme _current
+}</code></pre>
+    </div>
+  </section>
+
+  <footer>
+    Mapa gerado para o repositório <code>Windows-Form-Snakes-Game-Tutorial-with-c-sharp-main</code>.
+    Diagramas: Mermaid.js &middot; Código: Prism.js &middot; Abra este arquivo direto no navegador.
+  </footer>
+</div>
+
+<!-- ================= Bibliotecas (CDN) ================= -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+
+<script>
+  // --- tema ---
+  const root = document.documentElement;
+  const btn = document.getElementById('themeBtn');
+  function currentTheme(){
+    return root.dataset.theme
+      || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+  btn.addEventListener('click', () => {
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    try { localStorage.setItem('mapa-theme', next); } catch(e){}
+    renderMermaid();
+  });
+  try {
+    const saved = localStorage.getItem('mapa-theme');
+    if (saved) root.dataset.theme = saved;
+  } catch(e){}
+
+  // --- abas ---
+  const tabs = document.querySelectorAll('nav.tabs button');
+  const panels = document.querySelectorAll('section[role="tabpanel"]');
+  tabs.forEach(tab => tab.addEventListener('click', () => {
+    tabs.forEach(t => t.setAttribute('aria-selected', t === tab));
+    panels.forEach(p => p.classList.toggle('active', p.id === tab.dataset.tab));
+    renderMermaid(); // re-mede diagramas que estavam em abas ocultas
+  }));
+
+  // --- mermaid ---
+  const diagrams = [...document.querySelectorAll('pre.mermaid')];
+  const sources = diagrams.map(el => el.textContent.trim());
+  function renderMermaid(){
+    diagrams.forEach((el, i) => {
+      el.removeAttribute('data-processed');
+      el.textContent = sources[i];
+    });
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: currentTheme() === 'dark' ? 'dark' : 'default'
+    });
+    mermaid.run({ nodes: diagrams }).catch(err => console.error('Mermaid:', err));
+  }
+  renderMermaid();
+</script>
+</body>
+</html>
