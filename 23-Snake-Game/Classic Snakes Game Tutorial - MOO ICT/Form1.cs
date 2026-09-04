@@ -43,6 +43,13 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
             menu.AddOption("Jogar", StartNewGame);
             menu.AddOption("Sair", Close);
 
+            // Por padrao o WinForms so invalida a faixa recem-exposta ao
+            // redimensionar, deixando pixels antigos no restante do canvas.
+            // Isso passa despercebido durante a partida porque o gameTimer
+            // ja redesenha tudo a cada tick, mas no menu e na pausa nada
+            // força um repaint completo sem isso.
+            picCanvas.SizeChanged += (s, e) => picCanvas.Invalidate();
+
             ShowMenu();
         }
 
@@ -113,6 +120,12 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
                 return;
             }
 
+            if (header.PauseClicked(e.Location))
+            {
+                TogglePause();
+                return;
+            }
+
             if (state == GameState.Menu
                 && menu.HandleMouseClick(e.Location)
                 && !picCanvas.IsDisposed)
@@ -121,10 +134,38 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
             }
         }
 
+        /// <summary>Alterna entre partida em andamento e partida pausada.</summary>
+        private void TogglePause()
+        {
+            if (state == GameState.Playing)
+            {
+                state = GameState.Paused;
+                gameTimer.Stop();
+                picCanvas.Invalidate();
+            }
+            else if (state == GameState.Paused)
+            {
+                state = GameState.Playing;
+                gameTimer.Start();
+                picCanvas.Invalidate();
+            }
+        }
+
         private void KeyIsDown(object sender, KeyEventArgs e)
         {
             // No menu as teclas sao tratadas em ProcessCmdKey.
             if (state == GameState.Menu)
+            {
+                return;
+            }
+
+            if (e.KeyCode == Keys.P || e.KeyCode == Keys.Escape || e.KeyCode == Keys.Space)
+            {
+                TogglePause();
+                return;
+            }
+
+            if (state == GameState.Paused)
             {
                 return;
             }
@@ -169,16 +210,6 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
 
         private void TakeSnapShot()
         {
-            Label caption = new Label();
-            caption.Text = "I scored: " + score + " and my Highscore is " + highScore + " on the Snake Game from MOO ICT";
-            caption.Font = new Font("Ariel", 12, FontStyle.Bold);
-            caption.ForeColor = Color.Purple;
-            caption.AutoSize = false;
-            caption.Width = picCanvas.Width;
-            caption.Height = 30;
-            caption.TextAlign = ContentAlignment.MiddleCenter;
-            picCanvas.Controls.Add(caption);
-
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.FileName = "Snake Game SnapShot MOO ICT";
             dialog.DefaultExt = "jpg";
@@ -190,14 +221,9 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
                 int width = Convert.ToInt32(picCanvas.Width);
                 int height = Convert.ToInt32(picCanvas.Height);
                 Bitmap bmp = new Bitmap(width, height);
-                picCanvas.DrawToBitmap(bmp, new Rectangle(0,0, width, height));
+                picCanvas.DrawToBitmap(bmp, new Rectangle(0, 0, width, height));
                 bmp.Save(dialog.FileName, ImageFormat.Jpeg);
-                picCanvas.Controls.Remove(caption);
             }
-
-
-
-
 
         }
 
@@ -305,8 +331,27 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
                 menu.Draw(canvas, new Rectangle(
                     0, GameHeader.Height,
                     picCanvas.Width, picCanvas.Height - GameHeader.Height));
-                header.Draw(canvas, picCanvas.Width, score, highScore);
+                header.Draw(canvas, picCanvas.Width, score, highScore, false, false);
                 return;
+            }
+
+            // Area disponivel abaixo do cabecalho. O tabuleiro fica preso ao
+            // topo dessa area e centralizado horizontalmente quando a janela
+            // e maior do que ele, com uma borda para deixar seu limite visivel.
+            var playArea = new Rectangle(0, GameHeader.Height, picCanvas.Width, picCanvas.Height - GameHeader.Height);
+            int boardWidth = Settings.Columns * Settings.CellSize;
+            int boardHeight = Settings.Rows * Settings.CellSize;
+            int boardLeft = playArea.Left + Math.Max(0, (playArea.Width - boardWidth) / 2);
+            int boardTop = playArea.Top;
+            var boardArea = new Rectangle(boardLeft, boardTop, boardWidth, boardHeight);
+
+            using (var outsideBrush = new SolidBrush(Color.FromArgb(20, 20, 20)))
+            {
+                canvas.FillRectangle(outsideBrush, playArea);
+            }
+            using (var boardBrush = new SolidBrush(Color.Silver))
+            {
+                canvas.FillRectangle(boardBrush, boardArea);
             }
 
             Brush snakeColour;
@@ -324,8 +369,8 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
 
                 canvas.FillEllipse(snakeColour, new Rectangle
                     (
-                    Snake[i].X * Settings.CellSize,
-                    GameHeader.Height + Snake[i].Y * Settings.CellSize,
+                    boardLeft + Snake[i].X * Settings.CellSize,
+                    boardTop + Snake[i].Y * Settings.CellSize,
                     Settings.CellSize, Settings.CellSize
                     ));
             }
@@ -333,12 +378,48 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
 
             canvas.FillEllipse(Brushes.DarkRed, new Rectangle
             (
-            food.X * Settings.CellSize,
-            GameHeader.Height + food.Y * Settings.CellSize,
+            boardLeft + food.X * Settings.CellSize,
+            boardTop + food.Y * Settings.CellSize,
             Settings.CellSize, Settings.CellSize
             ));
 
-            header.Draw(canvas, picCanvas.Width, score, highScore);
+            using (var boardBorder = new Pen(Color.LimeGreen, 2))
+            {
+                canvas.DrawRectangle(boardBorder, boardArea.X, boardArea.Y, boardArea.Width - 1, boardArea.Height - 1);
+            }
+
+            if (state == GameState.Paused)
+            {
+                DrawPauseOverlay(canvas, boardArea);
+            }
+
+            header.Draw(canvas, picCanvas.Width, score, highScore, true, state == GameState.Paused);
+        }
+
+        /// <summary>Desenha o aviso de "PAUSADO" sobre o tabuleiro.</summary>
+        private void DrawPauseOverlay(Graphics canvas, Rectangle boardArea)
+        {
+            using (var overlay = new SolidBrush(Color.FromArgb(160, 0, 0, 0)))
+            {
+                canvas.FillRectangle(overlay, boardArea);
+            }
+
+            using (var titleFont = new Font("Microsoft Sans Serif", 22f, FontStyle.Bold))
+            using (var titleBrush = new SolidBrush(Color.LimeGreen))
+            using (var hintFont = new Font("Microsoft Sans Serif", 11f, FontStyle.Regular))
+            using (var hintBrush = new SolidBrush(Color.Gainsboro))
+            using (var centered = new StringFormat
+            {
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center
+            })
+            {
+                var titleArea = new RectangleF(boardArea.X, boardArea.Y + boardArea.Height / 2 - 40, boardArea.Width, 50);
+                canvas.DrawString("PAUSADO", titleFont, titleBrush, titleArea, centered);
+
+                var hintArea = new RectangleF(boardArea.X, boardArea.Y + boardArea.Height / 2 + 10, boardArea.Width, 30);
+                canvas.DrawString("Pressione Esc, Espaco ou P, ou clique em Retomar, para continuar", hintFont, hintBrush, hintArea, centered);
+            }
         }
 
         private void RestartGame()
@@ -349,21 +430,25 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
             Snake.Clear();
 
             // Zera a direcao e as teclas retidas para que uma nova partida
-            // nao herde o movimento da anterior.
-            Settings.directions = "left";
+            // nao herde o movimento da anterior. A cabeca nasce a direita do
+            // corpo, entao a direcao inicial precisa ser "right": partindo
+            // para "left" a cabeca andaria para cima do proprio corpo e
+            // colidiria consigo mesma no primeiro passo.
+            Settings.directions = "right";
             goLeft = goRight = goUp = goDown = false;
 
             gameTimer.Interval = Settings.SnakeSpeedMs;
             score = 0;
 
-            Circle head = new Circle { X = 10, Y = 5 };
-            Snake.Add(head); // adding the head part of the snake to the list
+            // Comeca com 3 segmentos ja alinhados no meio do tabuleiro
+            // (cabeca a frente, rabo atras), em vez de nascer com varios
+            // segmentos empilhados em (0,0) esperando a cabeca se afastar.
+            int midX = Settings.Columns / 2;
+            int midY = Settings.Rows / 2;
 
-            for (int i = 0; i < 10; i++)
-            {
-                Circle body = new Circle();
-                Snake.Add(body);
-            }
+            Snake.Add(new Circle { X = midX + 1, Y = midY }); // cabeca
+            Snake.Add(new Circle { X = midX, Y = midY });
+            Snake.Add(new Circle { X = midX - 1, Y = midY }); // rabo
 
             food = new Circle { X = rand.Next(0, maxWidth + 1), Y = rand.Next(0, maxHeight + 1) };
 

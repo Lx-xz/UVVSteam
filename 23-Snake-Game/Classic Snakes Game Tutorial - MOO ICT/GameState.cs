@@ -10,6 +10,9 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         Menu,
 
         /// <summary>Partida em andamento.</summary>
-        Playing
+        Playing,
+
+        /// <summary>Partida em andamento, porem pausada.</summary>
+        Paused
     }
 }

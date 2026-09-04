@@ -1,7 +1,7 @@
 # UVV Steam — Documentação do Jogo 23
 
 > Documento vivo. Deve ser atualizado a cada alteração feita no projeto.
-> Última atualização: 2026-09-01
+> Última atualização: 2026-09-04
 
 ---
 
@@ -53,7 +53,9 @@ o *high score*. As bordas do canvas fazem *wrap* (a cobra reaparece do lado opos
 | 2026-09-01 | 1 | Corrigir navegação do menu por teclado (setas + Enter) | Concluído | _(preencher)_ |
 | 2026-09-01 | 2 | Cabeçalho fixo (HUD) com pontuação, recorde e botão Snap | Concluído | _(preencher)_ |
 | 2026-09-01 | 2 | Reduzir o tabuleiro (20×20) e deixar a cobra mais lenta (120 ms) | Concluído | _(preencher)_ |
-| — | — | Implementar **pausa** | Pendente | _(preencher)_ |
+| 2026-09-04 | 3 | Implementar **pausa** (botão no cabeçalho, teclas Esc/Espaço/P) | Concluído | _(preencher)_ |
+| 2026-09-04 | 3 | Corrigir tabuleiro sem limite visível e sem centralizar ao redimensionar a janela | Concluído | _(preencher)_ |
+| 2026-09-04 | 3 | Corrigir surgimento da cobra (segmentos nascendo empilhados em 0,0) | Concluído | _(preencher)_ |
 | — | — | **Dificuldade**: tamanho do tabuleiro por nível | Pendente | _(preencher)_ |
 | — | — | **Velocidade dinâmica** da cobra | Pendente | _(preencher)_ |
 | — | — | Implementar **som** | Pendente | _(preencher)_ |
@@ -67,7 +69,7 @@ o *high score*. As bordas do canvas fazem *wrap* (a cobra reaparece do lado opos
 
 1. **Menu principal** — ✅ implementado (sessão 1).
 2. **Cabeçalho fixo (HUD)** com pontuação, recorde e botão Snap — ✅ implementado (sessão 2).
-3. **Pausa** — pendente.
+3. **Pausa** — ✅ implementado (sessão 3).
 4. **Dificuldade** (Fácil / Médio / Difícil): define o tamanho do tabuleiro — pendente.
 5. **Velocidade dinâmica** da cobra (acelera conforme o jogo avança) — pendente.
 6. **Som** (efeitos e/ou música, com liga/desliga) — pendente.
@@ -130,6 +132,8 @@ quanto durante a partida. Mostra `Pontos` e `Recorde` e traz o botão **Snap**
 | Pontuação | `Label txtScore` à direita do canvas | Texto desenhado no cabeçalho |
 | Recorde | `Label txtHighScore` à direita do canvas | Texto desenhado no cabeçalho |
 | Captura de tela | Botão `snapButton` (controle solto) | Área "Snap" desenhada no cabeçalho, clicável em qualquer estado |
+| Captura de tela (legenda) | `TakeSnapShot` sobrepunha um `Label` com "I scored: X and my Highscore is Y..." antes de salvar | Legenda removida; a captura salva o canvas tal como está na tela |
+| Pausar | Inexistente | Área "Pausar"/"Retomar" desenhada no cabeçalho, ao lado do Snap, visível só durante a partida |
 | Persistência na tela | Rótulos sempre visíveis fora da área de jogo | Cabeçalho fixo dentro do canvas, no menu e no jogo |
 | Área de jogo | Ocupava todo o `picCanvas` | Começa abaixo do cabeçalho (`GameHeader.Height`) |
 | Orientação a objetos | — | Nova classe `GameHeader` (desenho + teste de clique no Snap) |
@@ -170,6 +174,60 @@ de `Size`).
 eliminando o *warning* `CS8618` que existia antes. O *build* agora conclui com
 **0 warnings**.
 
+### 4.4. Pausa
+
+**Descrição:** durante a partida, o jogador pode pausar e retomar o jogo a
+qualquer momento — pelo botão **Pausar/Retomar** no cabeçalho, ou pelas teclas
+**Esc**, **Espaço** ou **P**. Enquanto pausado, o `gameTimer` para (a cobra
+congela no lugar), um aviso **"PAUSADO"** é desenhado sobre o tabuleiro e o
+botão do cabeçalho passa a exibir "Retomar".
+
+| Aspecto | ANTES | DEPOIS |
+|---|---|---|
+| Pausar a partida | Não existia; só era possível fechar a janela ou perder | Botão "Pausar" no cabeçalho e teclas Esc/Espaço/P alternam entre jogando e pausado |
+| Estado do jogo | `GameState` com `Menu` / `Playing` | Novo valor `Paused` no enum `GameState` |
+| Laço do jogo durante a pausa | — | `gameTimer.Stop()` ao pausar, `gameTimer.Start()` ao retomar (`TogglePause()`) |
+| Feedback visual da pausa | — | Overlay escurecido com o texto "PAUSADO" e a dica de teclas, desenhado sobre o tabuleiro |
+| Cabeçalho durante a pausa | — | Botão alterna o rótulo entre "Pausar" e "Retomar" conforme o estado |
+
+**Arquivos alterados:** `GameState.cs`, `GameHeader.cs`, `Form1.cs`.
+
+**Detalhes:**
+
+- `GameHeader.Draw` ganhou os parâmetros `showPauseButton` e `isPaused`: o botão
+  só é desenhado durante a partida (não aparece no menu) e troca de rótulo
+  conforme o estado.
+- `CanvasMouseClick` testa `header.PauseClicked(...)` depois do Snap, chamando
+  `TogglePause()`.
+- `KeyIsDown` trata `P`, `Escape` e `Espaço` como atalhos de pausa, antes de
+  qualquer verificação de movimento (evita mover a cobra no mesmo toque que
+  pausa/retoma).
+
+**Correções feitas junto (mesma sessão):**
+
+- **Tabuleiro sem limite visível:** o `picCanvas` era redimensionado com a
+  janela, mas o tabuleiro (área jogável) tinha tamanho fixo em pixels, sem
+  nenhuma borda — ficava difícil enxergar onde ele realmente terminava dentro
+  da janela maior. Agora o tabuleiro é desenhado com uma borda verde nítida,
+  fixo no topo e centralizado horizontalmente quando a janela é maior que ele.
+- **Repaint incompleto ao redimensionar:** no menu e na pausa, redimensionar a
+  janela deixava pixels antigos ("fantasmas") no canvas, porque o WinForms só
+  invalida por padrão a faixa recém-exposta, não o controle inteiro. Durante a
+  partida isso passava despercebido porque o `gameTimer` já forçava um repaint
+  completo a cada *tick*. Corrigido com
+  `picCanvas.SizeChanged += (s, e) => picCanvas.Invalidate();`.
+- **Borda entre a janela e o canvas:** `picCanvas` tinha uma margem fixa
+  (9px/12px) em relação à borda do formulário. Trocado `Anchor` por
+  `Dock = DockStyle.Fill`, eliminando a folga.
+- **Cobra nascendo "quebrada":** a cobra iniciava com 1 cabeça posicionada e
+  10 segmentos de corpo todos empilhados em `(0, 0)`, que só se separavam da
+  pilha depois de vários *ticks* — visualmente estranho. Agora nasce com
+  apenas 3 segmentos já alinhados no centro do tabuleiro (cabeça em
+  `meio + 1`, corpo em `meio`, rabo em `meio - 1`). Isso exigiu também trocar
+  a direção inicial de `"left"` para `"right"` em `RestartGame()`: com a
+  cabeça posicionada à direita do corpo, mantê-la indo para a esquerda faria
+  o primeiro movimento colidir com o próprio corpo (Game Over imediato).
+
 ---
 
 ## 5. Modelagem UML
@@ -185,9 +243,11 @@ Casos de uso já cobertos:
 - **Jogar Snake** (mover a cobra, comer, pontuar).
 - **Capturar tela** (área "Snap" no cabeçalho).
 - **Ver pontuação e recorde** (cabeçalho fixo).
+- **Pausar/retomar partida** (botão "Pausar/Retomar" no cabeçalho ou teclas
+  Esc/Espaço/P).
 
-Casos de uso planejados: **Pausar partida**, **Escolher dificuldade**,
-**Ligar/desligar som**, **Ver tela de Game Over**.
+Casos de uso planejados: **Escolher dificuldade**, **Ligar/desligar som**,
+**Ver tela de Game Over**.
 
 ### 5.2. Diagrama de classes (estado atual)
 
@@ -197,7 +257,8 @@ Casos de uso planejados: **Pausar partida**, **Escolher dificuldade**,
 +---------------------------+        +------------------+
 | - state: GameState        |        | Menu             |
 | - menu: MainMenu          | 1    1 | Playing          |
-| - header: GameHeader      |------->+------------------+
+| - header: GameHeader      |------->| Paused           |
+|                                    +------------------+
 | - Snake: List<Circle>     |
 | - food: Circle            |        +---------------------------------+
 | - score, highScore: int   | 1    1 |            MainMenu            |
@@ -214,8 +275,9 @@ Casos de uso planejados: **Pausar partida**, **Escolher dificuldade**,
 |   GameHeader     |  |  Circle   |                  | 1
 +------------------+  +-----------+                  | *
 | + Height: const  |  | + X: int  |         +--------v---------+
-| + Draw(g,w,s,hs) |  | + Y: int  |         |   MenuOption     |
+| + Draw(...)      |  | + Y: int  |         |   MenuOption     |
 | + SnapClicked(p) |  +-----------+         +------------------+
+| + PauseClicked(p)|
 +------------------+                        | + Label: string  |
                                             | + OnSelected: Action
 +------------------------------+  «static»  | + Bounds: Rectangle
@@ -297,3 +359,6 @@ na ferramenta de gestão.)_
 | 2026-09-01 | Correção da navegação do menu por teclado via `ProcessCmdKey` (setas + Enter deixavam de operar o menu e acionavam o botão `Snap`). | `Form1.cs` |
 | 2026-09-01 | Cabeçalho fixo (HUD): classe `GameHeader` desenha pontuação, recorde e botão Snap no topo do canvas, no menu e no jogo. Removidos os controles `snapButton`, `txtScore` e `txtHighScore`. `MainMenu.Draw` passou a receber `Rectangle`. | `GameHeader.cs` (novo); `Form1.cs`, `Form1.Designer.cs`, `MainMenu.cs` |
 | 2026-09-01 | Tabuleiro reduzido para 20×20 (célula 20 px) e cobra mais lenta (120 ms). Parâmetros movidos para `Settings` (`CellSize`, `Columns`, `Rows`, `SnakeSpeedMs`); `directions` inicializado na declaração (elimina *warning* `CS8618`). | `Settings.cs`, `Form1.cs`, `Form1.Designer.cs` |
+| 2026-09-04 | Pausa: botão "Pausar/Retomar" no cabeçalho, teclas Esc/Espaço/P, novo valor `Paused` em `GameState`, overlay "PAUSADO" sobre o tabuleiro. Removida a legenda de pontuação/recorde que era sobreposta ao usar o Snap. | `GameState.cs`, `GameHeader.cs`, `Form1.cs` |
+| 2026-09-04 | Tabuleiro com borda visível, fixo no topo e centralizado horizontalmente quando a janela é maior que ele. Corrigido repaint incompleto do menu/pausa ao redimensionar (`picCanvas.SizeChanged`). `picCanvas` passou a usar `Dock = Fill`, eliminando a margem fixa entre a janela e o canvas. | `Form1.cs`, `Form1.Designer.cs` |
+| 2026-09-04 | Cobra passa a nascer com 3 segmentos já alinhados no centro do tabuleiro (cabeça em `meio+1`, corpo em `meio`, rabo em `meio-1`), em vez de 11 segmentos com o corpo empilhado em `(0,0)`. Direção inicial trocada de `"left"` para `"right"` para evitar colisão da cabeça com o próprio corpo no primeiro movimento. | `Form1.cs` |

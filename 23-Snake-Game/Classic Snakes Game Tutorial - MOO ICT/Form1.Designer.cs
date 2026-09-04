@@ -37,10 +37,11 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
             //
             // picCanvas
             //
-            this.picCanvas.BackColor = System.Drawing.Color.Silver;
-            this.picCanvas.Location = new System.Drawing.Point(9, 12);
+            this.picCanvas.BackColor = System.Drawing.Color.FromArgb(20, 20, 20);
+            this.picCanvas.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.picCanvas.Location = new System.Drawing.Point(0, 0);
             this.picCanvas.Name = "picCanvas";
-            this.picCanvas.Size = new System.Drawing.Size(400, 444);
+            this.picCanvas.Size = new System.Drawing.Size(418, 468);
             this.picCanvas.TabIndex = 1;
             this.picCanvas.TabStop = false;
             this.picCanvas.Paint += new System.Windows.Forms.PaintEventHandler(this.UpdatePictureBoxGraphics);
@@ -59,6 +60,7 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
             this.ClientSize = new System.Drawing.Size(418, 468);
             this.Controls.Add(this.picCanvas);
             this.KeyPreview = true;
+            this.MinimumSize = new System.Drawing.Size(320, 360);
             this.Name = "Form1";
             this.Text = "Classic Snakes Game MOO ICT";
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.KeyIsDown);
