@@ -18,9 +18,14 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         private List<Circle> Snake = new List<Circle>();
         private Circle food = new Circle();
 
-        // Estado atual (menu ou partida) e os elementos desenhados no canvas.
+        // Estado atual (menu, dificuldade, partida, pausa ou game over) e os
+        // elementos desenhados no canvas. Os tres menus reaproveitam a mesma
+        // classe MainMenu (label + acao + descricao opcional), so mudando o
+        // titulo/subtitulo/opcoes passados para Draw().
         private GameState state = GameState.Menu;
         private readonly MainMenu menu = new MainMenu();
+        private readonly MainMenu difficultyMenu = new MainMenu();
+        private readonly MainMenu gameOverMenu = new MainMenu();
         private readonly GameHeader header = new GameHeader();
 
         int maxWidth;
@@ -28,6 +33,9 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
 
         int score;
         int highScore;
+
+        /// <summary>Verdadeiro se a ultima partida terminou por vitoria (meta de pontos atingida), falso se foi derrota.</summary>
+        bool lastGameWasVictory;
 
         Random rand = new Random();
 
@@ -40,8 +48,23 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
 
             new Settings();
 
-            menu.AddOption("Jogar", StartNewGame);
+            menu.AddOption("Jogar", ShowDifficultySelect);
             menu.AddOption("Sair", Close);
+
+            difficultyMenu.AddOption("Facil", () => StartNewGame(Difficulty.Facil),
+                "Arena maior, paredes atravessaveis, meta de 10 pontos para vencer");
+            difficultyMenu.AddOption("Medio", () => StartNewGame(Difficulty.Medio),
+                "Arena padrao, paredes solidas (matam), meta de 20 pontos para vencer");
+            difficultyMenu.AddOption("PRO", () => StartNewGame(Difficulty.Pro),
+                "Arena padrao, paredes solidas, sem meta: quebre seu recorde");
+            difficultyMenu.AddOption("Voltar", ShowMenu);
+
+            // As acoes de "Jogar novamente" e "Menu principal" sao montadas
+            // dinamicamente (dependem da dificuldade da partida que acabou
+            // de terminar), entao ficam mais faceis de ler direto no metodo
+            // EndGame do que aqui no construtor.
+            gameOverMenu.AddOption("Jogar novamente", () => StartNewGame(Settings.CurrentDifficulty));
+            gameOverMenu.AddOption("Menu principal", ShowMenu);
 
             // Por padrao o WinForms so invalida a faixa recem-exposta ao
             // redimensionar, deixando pixels antigos no restante do canvas.
@@ -53,6 +76,22 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
             ShowMenu();
         }
 
+        /// <summary>
+        /// Devolve o menu que deve receber teclado/mouse no estado atual, ou
+        /// null quando o estado atual nao usa um menu (Playing/Paused, que
+        /// tem seu proprio tratamento de teclas).
+        /// </summary>
+        private MainMenu ActiveMenu()
+        {
+            switch (state)
+            {
+                case GameState.Menu: return menu;
+                case GameState.DifficultySelect: return difficultyMenu;
+                case GameState.GameOver: return gameOverMenu;
+                default: return null;
+            }
+        }
+
         /// <summary>Exibe o menu principal e interrompe qualquer partida em andamento.</summary>
         private void ShowMenu()
         {
@@ -62,9 +101,18 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
             picCanvas.Invalidate();
         }
 
-        /// <summary>Inicia uma nova partida a partir do menu.</summary>
-        private void StartNewGame()
+        /// <summary>Exibe a tela de escolha de dificuldade (a partir do menu principal).</summary>
+        private void ShowDifficultySelect()
         {
+            state = GameState.DifficultySelect;
+            difficultyMenu.Reset();
+            picCanvas.Invalidate();
+        }
+
+        /// <summary>Aplica a dificuldade escolhida e inicia uma nova partida.</summary>
+        private void StartNewGame(Difficulty difficulty)
+        {
+            Settings.ApplyDifficulty(difficulty);
             state = GameState.Playing;
             RestartGame();
         }
@@ -76,20 +124,22 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         /// </summary>
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            if (state == GameState.Menu)
+            MainMenu activeMenu = ActiveMenu();
+
+            if (activeMenu != null)
             {
                 switch (keyData)
                 {
                     case Keys.Up:
-                        menu.MoveUp();
+                        activeMenu.MoveUp();
                         picCanvas.Invalidate();
                         return true;
                     case Keys.Down:
-                        menu.MoveDown();
+                        activeMenu.MoveDown();
                         picCanvas.Invalidate();
                         return true;
                     case Keys.Enter:
-                        menu.ActivateSelected();
+                        activeMenu.ActivateSelected();
                         if (!picCanvas.IsDisposed)
                         {
                             picCanvas.Invalidate();
@@ -103,9 +153,10 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
 
         private void CanvasMouseMove(object sender, MouseEventArgs e)
         {
-            if (state != GameState.Menu) return;
+            MainMenu activeMenu = ActiveMenu();
+            if (activeMenu == null) return;
 
-            if (menu.HandleMouseMove(e.Location))
+            if (activeMenu.HandleMouseMove(e.Location))
             {
                 picCanvas.Invalidate();
             }
@@ -126,8 +177,9 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
                 return;
             }
 
-            if (state == GameState.Menu
-                && menu.HandleMouseClick(e.Location)
+            MainMenu activeMenu = ActiveMenu();
+            if (activeMenu != null
+                && activeMenu.HandleMouseClick(e.Location)
                 && !picCanvas.IsDisposed)
             {
                 picCanvas.Invalidate();
@@ -153,8 +205,9 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
 
         private void KeyIsDown(object sender, KeyEventArgs e)
         {
-            // No menu as teclas sao tratadas em ProcessCmdKey.
-            if (state == GameState.Menu)
+            // Em qualquer tela de menu (principal, dificuldade ou game over)
+            // as teclas sao tratadas em ProcessCmdKey, nao aqui.
+            if (ActiveMenu() != null)
             {
                 return;
             }
@@ -275,27 +328,36 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
                             break;
                     }
 
-                    if (Snake[i].X < 0)
-                    {
-                        Snake[i].X = maxWidth;
-                    }
-                    if (Snake[i].X > maxWidth)
-                    {
-                        Snake[i].X = 0;
-                    }
-                    if (Snake[i].Y < 0)
-                    {
-                        Snake[i].Y = maxHeight;
-                    }
-                    if (Snake[i].Y > maxHeight)
-                    {
-                        Snake[i].Y = 0;
-                    }
+                    bool hitWall = Snake[i].X < 0 || Snake[i].X > maxWidth
+                                || Snake[i].Y < 0 || Snake[i].Y > maxHeight;
 
+                    if (hitWall)
+                    {
+                        if (Settings.WallsAreSolid)
+                        {
+                            // Facil: paredes vazam. Medio/PRO: paredes matam.
+                            EndGame(victory: false);
+                            return;
+                        }
+
+                        // Wrap: a cobra reaparece do lado oposto do tabuleiro.
+                        if (Snake[i].X < 0) Snake[i].X = maxWidth;
+                        if (Snake[i].X > maxWidth) Snake[i].X = 0;
+                        if (Snake[i].Y < 0) Snake[i].Y = maxHeight;
+                        if (Snake[i].Y > maxHeight) Snake[i].Y = 0;
+                    }
 
                     if (Snake[i].X == food.X && Snake[i].Y == food.Y)
                     {
                         EatFood();
+
+                        // EatFood() pode ter disparado a vitoria (meta de
+                        // pontos atingida). Se o estado mudou, a partida
+                        // acabou: nao ha mais nada a atualizar neste tick.
+                        if (state != GameState.Playing)
+                        {
+                            return;
+                        }
                     }
 
                     for (int j = 1; j < Snake.Count; j++)
@@ -303,7 +365,10 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
 
                         if (Snake[i].X == Snake[j].X && Snake[i].Y == Snake[j].Y)
                         {
-                            GameOver();
+                            // Colidir com o proprio corpo mata em qualquer
+                            // dificuldade, mesmo no Facil (onde a parede nao mata).
+                            EndGame(victory: false);
+                            return;
                         }
 
                     }
@@ -326,11 +391,29 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         {
             Graphics canvas = e.Graphics;
 
+            var menuArea = new Rectangle(
+                0, GameHeader.Height,
+                picCanvas.Width, picCanvas.Height - GameHeader.Height);
+
             if (state == GameState.Menu)
             {
-                menu.Draw(canvas, new Rectangle(
-                    0, GameHeader.Height,
-                    picCanvas.Width, picCanvas.Height - GameHeader.Height));
+                menu.Draw(canvas, menuArea);
+                header.Draw(canvas, picCanvas.Width, score, highScore, false, false);
+                return;
+            }
+
+            if (state == GameState.DifficultySelect)
+            {
+                difficultyMenu.Draw(canvas, menuArea, title: "DIFICULDADE");
+                header.Draw(canvas, picCanvas.Width, score, highScore, false, false);
+                return;
+            }
+
+            if (state == GameState.GameOver)
+            {
+                string title = lastGameWasVictory ? "VOCE VENCEU!" : "GAME OVER";
+                string subtitle = "Pontuacao: " + score + "   Recorde: " + highScore;
+                gameOverMenu.Draw(canvas, menuArea, title, subtitle);
                 header.Draw(canvas, picCanvas.Width, score, highScore, false, false);
                 return;
             }
@@ -470,10 +553,21 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
 
             food = new Circle { X = rand.Next(0, maxWidth + 1), Y = rand.Next(0, maxHeight + 1) };
 
-
+            // Facil e Medio tem uma meta de pontos (Settings.TargetScore).
+            // O Pro nao tem meta (TargetScore == null) e so termina quando a
+            // cobra morre, entao esta checagem nunca dispara nele.
+            if (Settings.TargetScore.HasValue && score >= Settings.TargetScore.Value)
+            {
+                EndGame(victory: true);
+            }
         }
 
-        private void GameOver()
+        /// <summary>
+        /// Encerra a partida atual (por vitoria ou derrota), atualiza o
+        /// recorde se necessario e mostra a tela de Game Over com o
+        /// resultado.
+        /// </summary>
+        private void EndGame(bool victory)
         {
             gameTimer.Stop();
 
@@ -482,8 +576,10 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
                 highScore = score;
             }
 
-            // Volta ao menu principal apos a derrota.
-            ShowMenu();
+            lastGameWasVictory = victory;
+            state = GameState.GameOver;
+            gameOverMenu.Reset();
+            picCanvas.Invalidate();
         }
 
 

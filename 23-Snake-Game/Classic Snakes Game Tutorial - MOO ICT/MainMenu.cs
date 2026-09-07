@@ -26,10 +26,16 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         /// <summary>Indice da opcao atualmente destacada.</summary>
         public int SelectedIndex { get; private set; }
 
-        /// <summary>Adiciona uma opcao ao menu, na ordem em que sera exibida.</summary>
-        public void AddOption(string label, Action onSelected)
+        /// <summary>
+        /// Adiciona uma opcao ao menu, na ordem em que sera exibida.
+        /// </summary>
+        /// <param name="description">
+        /// Texto opcional exibido no rodape quando esta opcao esta
+        /// destacada (ex.: explicar o que uma dificuldade muda).
+        /// </param>
+        public void AddOption(string label, Action onSelected, string description = null)
         {
-            options.Add(new MenuOption(label, onSelected));
+            options.Add(new MenuOption(label, onSelected, description));
         }
 
         /// <summary>Devolve o destaque para a primeira opcao.</summary>
@@ -98,7 +104,12 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         /// Desenha o menu dentro da area util informada (o restante do canvas
         /// abaixo do cabecalho fixo).
         /// </summary>
-        public void Draw(Graphics canvas, Rectangle area)
+        /// <param name="title">Titulo grande no topo (ex.: "SNAKE", "DIFICULDADE", "GAME OVER").</param>
+        /// <param name="subtitle">
+        /// Linha opcional logo abaixo do titulo, menor (ex.: resumo da
+        /// pontuacao final na tela de Game Over). Null para omitir.
+        /// </param>
+        public void Draw(Graphics canvas, Rectangle area, string title = "SNAKE", string subtitle = null)
         {
             canvas.Clear(Color.FromArgb(20, 20, 20));
             canvas.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
@@ -111,8 +122,17 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
             {
                 using (var titleBrush = new SolidBrush(Color.LimeGreen))
                 {
-                    var titleArea = new RectangleF(area.Left, area.Top + 24, area.Width, 120);
-                    canvas.DrawString("SNAKE", titleFont, titleBrush, titleArea, centered);
+                    var titleArea = new RectangleF(area.Left, area.Top + 24, area.Width, 80);
+                    canvas.DrawString(title, titleFont, titleBrush, titleArea, centered);
+                }
+
+                if (!string.IsNullOrEmpty(subtitle))
+                {
+                    using (var subtitleBrush = new SolidBrush(Color.Gainsboro))
+                    {
+                        var subtitleArea = new RectangleF(area.Left, area.Top + 100, area.Width, 30);
+                        canvas.DrawString(subtitle, optionFont, subtitleBrush, subtitleArea, centered);
+                    }
                 }
 
                 int blockHeight = options.Count * OptionHeight
@@ -141,11 +161,20 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
                 }
             }
 
+            // Mostra a descricao da opcao destacada (ex.: regras da
+            // dificuldade em foco); se ela nao tiver descricao, cai no
+            // texto padrao de instrucoes de navegacao.
+            string hintText = "Setas + Enter ou clique do mouse";
+            if (options.Count > 0 && !string.IsNullOrEmpty(options[SelectedIndex].Description))
+            {
+                hintText = options[SelectedIndex].Description;
+            }
+
             using (var hintBrush = new SolidBrush(Color.Gray))
             using (var hintFormat = new StringFormat { Alignment = StringAlignment.Center })
             {
-                var hintArea = new RectangleF(area.Left, area.Bottom - 34, area.Width, 24);
-                canvas.DrawString("Setas + Enter ou clique do mouse", hintFont, hintBrush, hintArea, hintFormat);
+                var hintArea = new RectangleF(area.Left + 16, area.Bottom - 34, area.Width - 32, 24);
+                canvas.DrawString(hintText, hintFont, hintBrush, hintArea, hintFormat);
             }
         }
     }
