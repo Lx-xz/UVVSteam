@@ -33,7 +33,7 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         /// Texto opcional exibido no rodape quando esta opcao esta
         /// destacada (ex.: explicar o que uma dificuldade muda).
         /// </param>
-        public void AddOption(string label, Action onSelected, string description = null)
+        public void AddOption(string label, Action onSelected, string? description = null)
         {
             options.Add(new MenuOption(label, onSelected, description));
         }
@@ -109,7 +109,7 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         /// Linha opcional logo abaixo do titulo, menor (ex.: resumo da
         /// pontuacao final na tela de Game Over). Null para omitir.
         /// </param>
-        public void Draw(Graphics canvas, Rectangle area, string title = "SNAKE", string subtitle = null)
+        public void Draw(Graphics canvas, Rectangle area, string title = "SNAKE", string? subtitle = null)
         {
             canvas.Clear(Color.FromArgb(20, 20, 20));
             canvas.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
@@ -165,9 +165,10 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
             // dificuldade em foco); se ela nao tiver descricao, cai no
             // texto padrao de instrucoes de navegacao.
             string hintText = "Setas + Enter ou clique do mouse";
-            if (options.Count > 0 && !string.IsNullOrEmpty(options[SelectedIndex].Description))
+            string? description = options.Count > 0 ? options[SelectedIndex].Description : null;
+            if (!string.IsNullOrEmpty(description))
             {
-                hintText = options[SelectedIndex].Description;
+                hintText = description;
             }
 
             using (var hintBrush = new SolidBrush(Color.Gray))

@@ -81,7 +81,7 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         /// null quando o estado atual nao usa um menu (Playing/Paused, que
         /// tem seu proprio tratamento de teclas).
         /// </summary>
-        private MainMenu ActiveMenu()
+        private MainMenu? ActiveMenu()
         {
             switch (state)
             {
@@ -124,7 +124,7 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         /// </summary>
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            MainMenu activeMenu = ActiveMenu();
+            MainMenu? activeMenu = ActiveMenu();
 
             if (activeMenu != null)
             {
@@ -153,7 +153,7 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
 
         private void CanvasMouseMove(object sender, MouseEventArgs e)
         {
-            MainMenu activeMenu = ActiveMenu();
+            MainMenu? activeMenu = ActiveMenu();
             if (activeMenu == null) return;
 
             if (activeMenu.HandleMouseMove(e.Location))
@@ -177,7 +177,7 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
                 return;
             }
 
-            MainMenu activeMenu = ActiveMenu();
+            MainMenu? activeMenu = ActiveMenu();
             if (activeMenu != null
                 && activeMenu.HandleMouseClick(e.Location)
                 && !picCanvas.IsDisposed)
@@ -398,23 +398,25 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
             if (state == GameState.Menu)
             {
                 menu.Draw(canvas, menuArea);
-                header.Draw(canvas, picCanvas.Width, score, highScore, false, false);
+                header.Draw(canvas, picCanvas.Width, score, highScore, Settings.TracksHighScore, false, false);
                 return;
             }
 
             if (state == GameState.DifficultySelect)
             {
                 difficultyMenu.Draw(canvas, menuArea, title: "DIFICULDADE");
-                header.Draw(canvas, picCanvas.Width, score, highScore, false, false);
+                header.Draw(canvas, picCanvas.Width, score, highScore, Settings.TracksHighScore, false, false);
                 return;
             }
 
             if (state == GameState.GameOver)
             {
                 string title = lastGameWasVictory ? "VOCE VENCEU!" : "GAME OVER";
-                string subtitle = "Pontuacao: " + score + "   Recorde: " + highScore;
+                string subtitle = Settings.TracksHighScore
+                    ? "Pontuacao: " + score + "   Recorde: " + highScore
+                    : "Pontuacao: " + score;
                 gameOverMenu.Draw(canvas, menuArea, title, subtitle);
-                header.Draw(canvas, picCanvas.Width, score, highScore, false, false);
+                header.Draw(canvas, picCanvas.Width, score, highScore, Settings.TracksHighScore, false, false);
                 return;
             }
 
@@ -476,7 +478,7 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
                 DrawPauseOverlay(canvas, boardArea);
             }
 
-            header.Draw(canvas, picCanvas.Width, score, highScore, true, state == GameState.Paused);
+            header.Draw(canvas, picCanvas.Width, score, highScore, Settings.TracksHighScore, true, state == GameState.Paused);
         }
 
         /// <summary>Desenha o aviso de "PAUSADO" sobre o tabuleiro.</summary>
@@ -543,6 +545,17 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         {
             score += 1;
 
+            // No modo Pro a cobra acelera um pouco a cada maca (o intervalo
+            // do timer diminui), ate o piso de Settings.MinSpeedMs. Nos
+            // outros modos Settings.SnakeSpeedsUp e falso e a velocidade
+            // fica fixa em Settings.SnakeSpeedMs.
+            if (Settings.SnakeSpeedsUp && gameTimer.Interval > Settings.MinSpeedMs)
+            {
+                gameTimer.Interval = Math.Max(
+                    Settings.MinSpeedMs,
+                    gameTimer.Interval - Settings.SpeedUpStepMs);
+            }
+
             Circle body = new Circle
             {
                 X = Snake[Snake.Count - 1].X,
@@ -571,7 +584,9 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         {
             gameTimer.Stop();
 
-            if (score > highScore)
+            // O recorde so e mantido no modo Pro (Settings.TracksHighScore);
+            // Facil e Medio tem meta fixa de pontos, entao nao guardam recorde.
+            if (Settings.TracksHighScore && score > highScore)
             {
                 highScore = score;
             }

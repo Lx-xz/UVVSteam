@@ -20,7 +20,7 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         /// esta opcao esta destacada (ex.: descrever uma dificuldade).
         /// Null para usar o texto padrao de instrucoes.
         /// </summary>
-        public string Description { get; }
+        public string? Description { get; }
 
         /// <summary>
         /// Area ocupada pela opcao no canvas. E recalculada a cada desenho
@@ -28,7 +28,7 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         /// </summary>
         public Rectangle Bounds { get; set; }
 
-        public MenuOption(string label, Action onSelected, string description = null)
+        public MenuOption(string label, Action onSelected, string? description = null)
         {
             Label = label;
             OnSelected = onSelected;

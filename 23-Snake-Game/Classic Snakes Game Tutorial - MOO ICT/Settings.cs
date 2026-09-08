@@ -25,6 +25,27 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         public static int SnakeSpeedMs { get; set; }
 
         /// <summary>
+        /// Se verdadeiro, a cobra acelera a cada maca comida: o intervalo do
+        /// timer diminui em <see cref="SpeedUpStepMs"/> ate o piso de
+        /// <see cref="MinSpeedMs"/>. Ativado apenas no modo Pro.
+        /// </summary>
+        public static bool SnakeSpeedsUp { get; set; }
+
+        /// <summary>Reducao no intervalo do timer (ms) por maca comida, quando <see cref="SnakeSpeedsUp"/> e verdadeiro.</summary>
+        public const int SpeedUpStepMs = 4;
+
+        /// <summary>Intervalo minimo do timer (ms): a cobra nao acelera alem disso.</summary>
+        public const int MinSpeedMs = 60;
+
+        /// <summary>
+        /// Se verdadeiro, a partida mantem e exibe o recorde (maior pontuacao
+        /// ja alcancada). Ativado apenas no modo Pro, que e o modo de quebrar
+        /// recorde; Facil e Medio tem meta fixa de pontos, entao um recorde
+        /// nao faz sentido neles.
+        /// </summary>
+        public static bool TracksHighScore { get; set; }
+
+        /// <summary>
         /// Se verdadeiro, colidir com a borda do tabuleiro encerra a partida
         /// (Game Over). Se falso, a cobra atravessa a borda e reaparece do
         /// lado oposto (comportamento classico de "wrap").
@@ -72,6 +93,8 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
                     CellSize = 16;
                     WallsAreSolid = false;
                     TargetScore = 10; // meta baixa, so pra dar uma vitoria alcancavel
+                    SnakeSpeedsUp = false;
+                    TracksHighScore = false;
                     break;
 
                 case Difficulty.Medio:
@@ -82,17 +105,22 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
                     CellSize = 20;
                     WallsAreSolid = true;
                     TargetScore = 20; // meta maior que a do Facil
+                    SnakeSpeedsUp = false;
+                    TracksHighScore = false;
                     break;
 
                 case Difficulty.Pro:
                     // Mesmo tamanho de arena do Medio, mas sem meta: o jogo
                     // so acaba quando a cobra morre. Funciona como um modo
-                    // "break ur highscore".
+                    // "break ur highscore" — e o unico modo que guarda recorde
+                    // e em que a cobra acelera conforme come.
                     Columns = 20;
                     Rows = 20;
                     CellSize = 20;
                     WallsAreSolid = true;
                     TargetScore = null;
+                    SnakeSpeedsUp = true;
+                    TracksHighScore = true;
                     break;
             }
 

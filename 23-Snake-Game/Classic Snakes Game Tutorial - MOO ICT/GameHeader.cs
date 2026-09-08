@@ -21,9 +21,10 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         private bool pauseButtonVisible;
 
         /// <summary>Desenha a faixa ocupando toda a largura do canvas.</summary>
+        /// <param name="showHighScore">Se o recorde deve ser exibido ao lado da pontuacao (apenas no modo Pro).</param>
         /// <param name="showPauseButton">Se o botao "Pausar" deve ser exibido (apenas durante uma partida).</param>
         /// <param name="isPaused">Se a partida esta pausada no momento (altera o rotulo do botao).</param>
-        public void Draw(Graphics canvas, int canvasWidth, int score, int highScore, bool showPauseButton, bool isPaused)
+        public void Draw(Graphics canvas, int canvasWidth, int score, int highScore, bool showHighScore, bool showPauseButton, bool isPaused)
         {
             var area = new Rectangle(0, 0, canvasWidth, Height);
 
@@ -47,8 +48,10 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
             using (var vCenter = new StringFormat { LineAlignment = StringAlignment.Center })
             {
                 var textArea = new RectangleF(12, 0, Math.Max(0, textRight - 22), Height);
-                canvas.DrawString("Pontos: " + score + "    Recorde: " + highScore,
-                    scoreFont, textBrush, textArea, vCenter);
+                string scoreText = showHighScore
+                    ? "Pontos: " + score + "    Recorde: " + highScore
+                    : "Pontos: " + score;
+                canvas.DrawString(scoreText, scoreFont, textBrush, textArea, vCenter);
             }
 
             if (pauseButtonVisible)
