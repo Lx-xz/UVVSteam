@@ -16,15 +16,23 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         public Action OnSelected { get; }
 
         /// <summary>
+        /// Texto explicativo opcional, mostrado no rodape do menu quando
+        /// esta opcao esta destacada (ex.: descrever uma dificuldade).
+        /// Null para usar o texto padrao de instrucoes.
+        /// </summary>
+        public string Description { get; }
+
+        /// <summary>
         /// Area ocupada pela opcao no canvas. E recalculada a cada desenho
         /// e usada para detectar cliques e a passagem do mouse.
         /// </summary>
         public Rectangle Bounds { get; set; }
 
-        public MenuOption(string label, Action onSelected)
+        public MenuOption(string label, Action onSelected, string description = null)
         {
             Label = label;
             OnSelected = onSelected;
+            Description = description;
         }
     }
 }
