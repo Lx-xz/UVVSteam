@@ -1,7 +1,7 @@
 # UVV Steam — Documentação do Jogo 23
 
 > Documento vivo. Deve ser atualizado a cada alteração feita no projeto.
-> Última atualização: 2026-09-04
+> Última atualização: 2026-09-08 (2ª revisão do dia)
 
 ---
 
@@ -36,8 +36,8 @@ o *high score*. As bordas do canvas fazem *wrap* (a cobra reaparece do lado opos
 | Documentar contribuições com status antes/depois | Seção 5. |
 | Diagrama de **casos de uso** (UML) | Seção 6.1. |
 | **Modelagem de classes** (UML) | Seção 6.2. |
-| Paradigma orientado a objetos | Novas classes `MainMenu`, `MenuOption`, `GameHeader`, enum `GameState` (seção 5.2). |
-| Coleções, associação, navegabilidade | `MainMenu` contém uma coleção de `MenuOption` (associação 1..*); `Form1` conhece `MainMenu`. |
+| Paradigma orientado a objetos | Novas classes `MainMenu`, `MenuOption`, `GameHeader`, enums `GameState` e `Difficulty` (seção 5.2). |
+| Coleções, associação, navegabilidade | `MainMenu` contém uma coleção de `MenuOption` (associação 1..*); `Form1` conhece três instâncias de `MainMenu` (principal, dificuldade e game over). |
 | GUI | Windows Forms + desenho GDI+ no canvas. |
 | Gestão de tarefas | Seção 3. |
 | Uso e documentação de IA | Seção 7. |
@@ -48,18 +48,18 @@ o *high score*. As bordas do canvas fazem *wrap* (a cobra reaparece do lado opos
 
 | Data | Sessão | Atividade planejada | Status | Responsável |
 |---|---|---|---|---|
-| 2026-09-01 | 1 | Levantar funcionalidades a adicionar (pausa, menu, dificuldade, som, game over visível) | Concluído | _(preencher)_ |
-| 2026-09-01 | 1 | Implementar **menu principal** | Concluído | _(preencher)_ |
-| 2026-09-01 | 1 | Corrigir navegação do menu por teclado (setas + Enter) | Concluído | _(preencher)_ |
-| 2026-09-01 | 2 | Cabeçalho fixo (HUD) com pontuação, recorde e botão Snap | Concluído | _(preencher)_ |
-| 2026-09-01 | 2 | Reduzir o tabuleiro (20×20) e deixar a cobra mais lenta (120 ms) | Concluído | _(preencher)_ |
-| 2026-09-04 | 3 | Implementar **pausa** (botão no cabeçalho, teclas Esc/Espaço/P) | Concluído | _(preencher)_ |
-| 2026-09-04 | 3 | Corrigir tabuleiro sem limite visível e sem centralizar ao redimensionar a janela | Concluído | _(preencher)_ |
-| 2026-09-04 | 3 | Corrigir surgimento da cobra (segmentos nascendo empilhados em 0,0) | Concluído | _(preencher)_ |
-| — | — | **Dificuldade**: tamanho do tabuleiro por nível | Pendente | _(preencher)_ |
-| — | — | **Velocidade dinâmica** da cobra | Pendente | _(preencher)_ |
-| — | — | Implementar **som** | Pendente | _(preencher)_ |
-| — | — | Implementar tela de **"Game Over"** visível | Pendente | _(preencher)_ |
+| 2026-09-01 | 1 | Levantar funcionalidades a adicionar (pausa, menu, dificuldade, som, game over visível) | Concluído | Luiz |
+| 2026-09-01 | 1 | Implementar **menu principal** | Concluído | Luiz |
+| 2026-09-01 | 1 | Corrigir navegação do menu por teclado (setas + Enter) | Concluído | Luiz |
+| 2026-09-01 | 2 | Cabeçalho fixo (HUD) com pontuação, recorde e botão Snap | Concluído | Luiz |
+| 2026-09-01 | 2 | Reduzir o tabuleiro (20×20) e deixar a cobra mais lenta (120 ms) | Concluído | Luiz |
+| 2026-09-04 | 3 | Implementar **pausa** (botão no cabeçalho, teclas Esc/Espaço/P) | Concluído | Luiz |
+| 2026-09-04 | 3 | Corrigir tabuleiro sem limite visível e sem centralizar ao redimensionar a janela | Concluído | Luiz |
+| 2026-09-04 | 3 | Corrigir surgimento da cobra (segmentos nascendo empilhados em 0,0) | Concluído | Luiz |
+| 2026-09-08 | 4 | **Dificuldade**: tela de seleção (Fácil / Médio / PRO), enum `Difficulty`, `Settings.ApplyDifficulty` (tamanho da arena, paredes sólidas x wrap, meta de pontos) | Concluído | Gabriel |
+| 2026-09-08 | 4 | Implementar tela de **"Game Over"** e tela de **"Vitória"** (estado `GameOver`, `gameOverMenu`, `EndGame(victory)`) | Concluído | Gabriel |
+| 2026-09-08 | 4 | **Pontuação / meta**: condição de vitória por pontos (`Settings.TargetScore`); tela de resultado mostra pontuação e recorde | Concluído | Gabriel |
+| 2026-09-08 | 4 | Restringir o **recorde** ao modo PRO e fazer a **cobra acelerar a cada maçã**, também só no PRO (`Settings.TracksHighScore`, `Settings.SnakeSpeedsUp`) | Concluído | Luiz e Gabriel |
 
 > Manter esta tabela sincronizada com a ferramenta de gestão (prints como evidência).
 
@@ -70,15 +70,24 @@ o *high score*. As bordas do canvas fazem *wrap* (a cobra reaparece do lado opos
 1. **Menu principal** — ✅ implementado (sessão 1).
 2. **Cabeçalho fixo (HUD)** com pontuação, recorde e botão Snap — ✅ implementado (sessão 2).
 3. **Pausa** — ✅ implementado (sessão 3).
-4. **Dificuldade** (Fácil / Médio / Difícil): define o tamanho do tabuleiro — pendente.
-5. **Velocidade dinâmica** da cobra (acelera conforme o jogo avança) — pendente.
-6. **Som** (efeitos e/ou música, com liga/desliga) — pendente.
-7. **Tela de "Game Over" visível** no canvas — pendente.
+4. **Dificuldade** (Fácil / Médio / PRO): tela de seleção que define o tamanho da
+   arena, o comportamento das paredes e a meta de pontos — ✅ implementado (sessão 4, PR).
+5. **Tela de "Game Over" e de "Vitória"** no canvas, com pontuação/recorde e
+   opções "Jogar novamente" / "Menu principal" — ✅ implementado (sessão 4, PR).
+6. **Pontuação com meta de vitória** por dificuldade (`Settings.TargetScore`) —
+   ✅ implementado (sessão 4, PR).
+7. **Velocidade dinâmica** da cobra (acelera a cada maçã) — ✅ implementado
+   **apenas no modo PRO** (sessão 4); os modos Fácil e Médio continuam com
+   velocidade fixa.
+8. **Recorde (*high score*) exclusivo do modo PRO** — ✅ implementado (sessão 4).
+9. **Som** (efeitos e/ou música, com liga/desliga) — pendente.
 
 > A redução do tabuleiro para 20×20 e a lentidão inicial da cobra (120 ms) na
-> sessão 2 são a base para os itens 4 e 5: os valores foram movidos para
-> `Settings` (`Columns`, `Rows`, `CellSize`, `SnakeSpeedMs`) para depois variarem
-> com a dificuldade.
+> sessão 2 foram a base para o item 4: os valores foram movidos para
+> `Settings` (`Columns`, `Rows`, `CellSize`, `SnakeSpeedMs`) e agora variam com a
+> dificuldade via `Settings.ApplyDifficulty`. A aceleração do item 7 e o recorde
+> do item 8 foram deliberadamente restritos ao PRO, o único modo sem meta de
+> pontos — ver seção 4.7.
 
 ---
 
@@ -228,6 +237,113 @@ botão do cabeçalho passa a exibir "Retomar".
   cabeça posicionada à direita do corpo, mantê-la indo para a esquerda faria
   o primeiro movimento colidir com o próprio corpo (Game Over imediato).
 
+### 4.5. Dificuldade (Fácil / Médio / PRO)
+
+**Descrição:** ao escolher **Jogar** no menu principal, o jogo passa antes por uma
+**tela de seleção de dificuldade** (novo estado `GameState.DifficultySelect`),
+desenhada no canvas reaproveitando a classe `MainMenu` com o título "DIFICULDADE".
+Cada opção traz uma descrição no rodapé explicando o que muda. A dificuldade
+escolhida é aplicada por `Settings.ApplyDifficulty(...)` antes de a partida
+começar.
+
+| Nível | Arena (colunas × linhas) | Célula | Paredes | Meta de pontos | Velocidade | Recorde |
+|---|---|---|---|---|---|---|
+| **Fácil** | 26 × 26 | 16 px | Atravessáveis (*wrap*) | 10 (vitória) | Fixa (120 ms) | Não |
+| **Médio** | 20 × 20 | 20 px | Sólidas (bater mata) | 20 (vitória) | Fixa (120 ms) | Não |
+| **PRO** | 20 × 20 | 20 px | Sólidas (bater mata) | Sem meta — modo recorde infinito | Acelera a cada maçã | Sim |
+
+| Aspecto | ANTES | DEPOIS |
+|---|---|---|
+| Escolha de dificuldade | Inexistente; parâmetros fixos em `Settings` | Tela dedicada (`DifficultySelect`) com Fácil / Médio / PRO / Voltar |
+| Tamanho da arena | Fixo (`Columns`/`Rows`/`CellSize` constantes) | Definido por `Settings.ApplyDifficulty` conforme o nível |
+| Bordas do tabuleiro | Sempre *wrap* (a cobra reaparece do lado oposto) | `Settings.WallsAreSolid`: *wrap* no Fácil, colisão fatal no Médio/PRO |
+| Fim de jogo por pontos | Não existia | `Settings.TargetScore`: atingir a meta encerra a partida como **vitória** (Fácil/Médio); PRO não tem meta |
+| Fluxo do menu | "Jogar" iniciava a partida direto | "Jogar" → tela de dificuldade → partida |
+| Reinício | `RestartGame()` com valores fixos | `StartNewGame(Difficulty)` aplica a dificuldade e chama `RestartGame()`; `Settings.CurrentDifficulty` guarda o nível para o "Jogar novamente" |
+
+**Arquivos novos:** `Difficulty.cs` (enum `Facil` / `Medio` / `Pro`).
+**Arquivos alterados:** `Settings.cs` (novos campos `WallsAreSolid`, `TargetScore`,
+`CurrentDifficulty` e método `ApplyDifficulty`), `Form1.cs` (`difficultyMenu`,
+`ShowDifficultySelect`, `StartNewGame(Difficulty)`, tratamento de parede no
+`GameTimerEvent`), `GameState.cs` (valor `DifficultySelect`), `MenuOption.cs` e
+`MainMenu.cs` (opção passa a ter `Description` opcional, exibida no rodapé).
+
+**Detalhes:**
+
+- `GameTimerEvent` verifica `Settings.WallsAreSolid` ao bater na borda: se sólida,
+  chama `EndGame(victory: false)`; senão, faz o *wrap* clássico.
+- Colidir com o próprio corpo mata em **qualquer** nível, mesmo no Fácil.
+- `Settings` usa `Difficulty.Medio` como padrão neutro no construtor, para haver
+  valores válidos enquanto só o menu está na tela (o cabeçalho já é desenhado).
+
+### 4.6. Telas de Game Over e de Vitória
+
+**Descrição:** quando a partida termina — por derrota (bater na parede sólida ou
+no próprio corpo) ou por vitória (atingir `Settings.TargetScore`) — o jogo entra
+no estado `GameState.GameOver` e mostra uma tela de resultado no canvas, também
+construída com `MainMenu`. O título é **"GAME OVER"** ou **"VOCE VENCEU!"**
+conforme o resultado, o subtítulo mostra `Pontuação: X   Recorde: Y`, e as opções
+são **"Jogar novamente"** (repete a mesma dificuldade) e **"Menu principal"**.
+
+| Aspecto | ANTES | DEPOIS |
+|---|---|---|
+| Fim de partida | Voltava direto ao menu principal (`ShowMenu()`) | Tela de resultado dedicada (`GameState.GameOver`) |
+| Feedback de derrota | Nenhum aviso visível; a tela apenas trocava | Tela "GAME OVER" com pontuação e recorde |
+| Condição/feedback de vitória | Não existia | Tela "VOCE VENCEU!" ao atingir a meta de pontos |
+| Ações após o fim | Só a navegação normal do menu principal | "Jogar novamente" (mesma dificuldade, via `Settings.CurrentDifficulty`) e "Menu principal" |
+| Atualização do recorde | Feita no encerramento genérico da partida | Centralizada em `EndGame(bool victory)`, que também guarda `lastGameWasVictory` |
+| Estado do jogo | `Menu` / `Playing` / `Paused` | Novo valor `GameOver` no enum `GameState` |
+
+**Arquivos alterados:** `GameState.cs` (valor `GameOver`), `Form1.cs`
+(`gameOverMenu`, campo `lastGameWasVictory`, método `EndGame(bool victory)`,
+desenho da tela em `UpdatePictureBoxGraphics`), `MainMenu.cs` (`Draw` ganhou os
+parâmetros `title` e `subtitle`).
+
+**Detalhes:**
+
+- `EndGame(bool victory)` para o `gameTimer`, atualiza o recorde se necessário,
+  registra `lastGameWasVictory`, muda o estado para `GameOver` e redesenha.
+- `EatFood` dispara `EndGame(victory: true)` assim que `score >= TargetScore`; o
+  `GameTimerEvent` checa logo depois se o estado ainda é `Playing` para não
+  processar o resto do *tick*.
+- `ActiveMenu()` devolve o menu correto para teclado/mouse conforme o estado
+  (`menu`, `difficultyMenu` ou `gameOverMenu`); em `Playing`/`Paused` devolve
+  `null`.
+
+### 4.7. Recorde e aceleração exclusivos do modo PRO
+
+**Descrição:** o **recorde** (*high score*) e a **aceleração progressiva** da
+cobra passam a valer **somente no modo PRO** — o único sem meta de pontos, em
+que o objetivo é justamente durar o máximo possível e bater a própria marca. Nos
+modos Fácil e Médio o cabeçalho mostra apenas `Pontos: X` (sem "Recorde"), e a
+velocidade continua fixa.
+
+| Aspecto | ANTES | DEPOIS |
+|---|---|---|
+| Recorde | Atualizado e exibido em todos os modos | Só no PRO (`Settings.TracksHighScore`): `EndGame` só atualiza `highScore` se a flag estiver ligada |
+| "Recorde" no cabeçalho | Sempre visível ("Pontos: X    Recorde: Y") | Exibido só quando `Settings.TracksHighScore` (novo parâmetro `showHighScore` em `GameHeader.Draw`) |
+| "Recorde" na tela de resultado | Sempre no subtítulo ("Pontuacao: X   Recorde: Y") | Subtítulo mostra só "Pontuacao: X" fora do PRO |
+| Velocidade da cobra | Fixa em `Settings.SnakeSpeedMs` (120 ms) em todos os modos | No PRO diminui `Settings.SpeedUpStepMs` (4 ms) por maçã comida, até o piso `Settings.MinSpeedMs` (60 ms); demais modos seguem fixos |
+| Onde a aceleração é aplicada | — | `EatFood()`, logo após incrementar o placar, quando `Settings.SnakeSpeedsUp` é verdadeiro |
+| Reinício de partida | — | `RestartGame()` volta `gameTimer.Interval` para `Settings.SnakeSpeedMs`, então a aceleração não vaza de uma partida para a outra |
+
+**Arquivos alterados:** `Settings.cs` (novos: `SnakeSpeedsUp`, `TracksHighScore`,
+constantes `SpeedUpStepMs` e `MinSpeedMs`; `ApplyDifficulty` liga as duas flags
+só no `case Difficulty.Pro`), `Form1.cs` (`EatFood` acelera o timer; `EndGame`
+condiciona o recorde; chamadas de `GameHeader.Draw` e o subtítulo do Game Over
+passam `Settings.TracksHighScore`), `GameHeader.cs` (novo parâmetro
+`showHighScore`).
+
+**Detalhes:**
+
+- A aceleração usa `Math.Max(Settings.MinSpeedMs, gameTimer.Interval - Settings.SpeedUpStepMs)`,
+  garantindo que o intervalo nunca fique abaixo do piso.
+- Com passo de 4 ms e piso de 60 ms, a cobra atinge a velocidade máxima por
+  volta da 15ª maçã (120 → 60 ms).
+- `highScore` é um campo da `Form1`, então sobrevive à troca de dificuldade
+  dentro da mesma execução: jogar Médio depois de um PRO não zera nem exibe o
+  recorde, e voltar ao PRO o mostra de novo.
+
 ---
 
 ## 5. Modelagem UML
@@ -245,50 +361,68 @@ Casos de uso já cobertos:
 - **Ver pontuação e recorde** (cabeçalho fixo).
 - **Pausar/retomar partida** (botão "Pausar/Retomar" no cabeçalho ou teclas
   Esc/Espaço/P).
+- **Escolher dificuldade** (tela "DIFICULDADE" → Fácil / Médio / PRO), que define
+  o tamanho da arena, o comportamento das paredes e a meta de pontos.
+- **Ver tela de resultado** ("GAME OVER" ou "VOCE VENCEU!") com a pontuação e,
+  no modo PRO, o recorde; e escolher entre **Jogar novamente** e **Menu principal**.
+- **Bater o recorde no modo PRO** (modo sem meta; o recorde só é contado e
+  exibido nele, e a cobra acelera a cada maçã).
 
-Casos de uso planejados: **Escolher dificuldade**, **Ligar/desligar som**,
-**Ver tela de Game Over**.
+Casos de uso planejados: **Ligar/desligar som**.
 
 ### 5.2. Diagrama de classes (estado atual)
 
 ```
-+---------------------------+        +------------------+
-|          Form1            |        |    GameState     |  «enumeration»
-+---------------------------+        +------------------+
-| - state: GameState        |        | Menu             |
-| - menu: MainMenu          | 1    1 | Playing          |
-| - header: GameHeader      |------->| Paused           |
-|                                    +------------------+
-| - Snake: List<Circle>     |
-| - food: Circle            |        +---------------------------------+
-| - score, highScore: int   | 1    1 |            MainMenu            |
-| + ProcessCmdKey()         |------->+---------------------------------+
-| + StartNewGame()          |        | - options: List<MenuOption>    |
-| + ShowMenu()              |        | + SelectedIndex: int           |
-| + GameOver()              |        | + AddOption(label, Action)     |
-| + TakeSnapShot()          |        | + MoveUp() / MoveDown()        |
-+---------------------------+        | + ActivateSelected()           |
-   | 1        | 1                    | + HandleMouseMove(Point): bool |
-   | 1        | *                    | + HandleMouseClick(Point): bool|
-   v          v                      | + Draw(Graphics, Rectangle)    |
-+------------------+  +-----------+  +---------------+-----------------+
-|   GameHeader     |  |  Circle   |                  | 1
-+------------------+  +-----------+                  | *
-| + Height: const  |  | + X: int  |         +--------v---------+
-| + Draw(...)      |  | + Y: int  |         |   MenuOption     |
-| + SnapClicked(p) |  +-----------+         +------------------+
-| + PauseClicked(p)|
-+------------------+                        | + Label: string  |
-                                            | + OnSelected: Action
-+------------------------------+  «static»  | + Bounds: Rectangle
-|          Settings            |            +------------------+
-+------------------------------+
-| + CellSize: int              |
-| + Columns: int               |
-| + Rows: int                  |
-| + SnakeSpeedMs: int          |
-| + directions: string         |
-+------------------------------+
++-------------------------------+     +---------------------+
+|            Form1              |     |     GameState        |  «enumeration»
++-------------------------------+     +---------------------+
+| - state: GameState            |     | Menu                |
+| - menu: MainMenu              | 1 1 | DifficultySelect    |
+| - difficultyMenu: MainMenu    |---->| Playing             |
+| - gameOverMenu: MainMenu      |     | Paused              |
+| - header: GameHeader          |     | GameOver            |
+| - Snake: List<Circle>         |     +---------------------+
+| - food: Circle                |
+| - score, highScore: int       |     +---------------------+
+| - lastGameWasVictory: bool    | 1 1 |     Difficulty       |  «enumeration»
+| + ProcessCmdKey()             |---->+---------------------+
+| + ActiveMenu(): MainMenu?     |     | Facil               |
+| + ShowMenu()                  |     | Medio               |
+| + ShowDifficultySelect()      |     | Pro                 |
+| + StartNewGame(Difficulty)    |     +---------------------+
+| + TogglePause()               |
+| + EndGame(victory: bool)      |     +---------------------------------+
+| + TakeSnapShot()              | 1 3 |            MainMenu             |
++-------------------------------+---->+---------------------------------+
+   | 1        | 1                     | - options: List<MenuOption>     |
+   | 1        | *                     | + SelectedIndex: int            |
+   v          v                       | + AddOption(label, Action, desc)|
++-------------------------+ +---------+ | + MoveUp() / MoveDown()         |
+|       GameHeader        | |  Circle | | + ActivateSelected()            |
++-------------------------+ +---------+ | + HandleMouseMove(Point): bool  |
+| + Height: const         | | + X:int | | + HandleMouseClick(Point): bool |
+| + Draw(g, w, score, hi, | | + Y:int | | + Draw(g, area, title, subtitle)|
+|   showHighScore,        | +---------+ +--------------+-----------------+
+|   showPauseButton,      |                            | 1
+|   isPaused)             |                            | *
+| + SnapClicked(p)        |                    +-------v----------------+
+| + PauseClicked(p)       |                    |      MenuOption         |
++-------------------------+                    +------------------------+
+                                               | + Label: string        |
++----------------------------------+ «static»  | + OnSelected: Action   |
+|            Settings              |           | + Description: string? |
++----------------------------------+           | + Bounds: Rectangle    |
+| + CellSize / Columns / Rows: int |           +------------------------+
+| + SnakeSpeedMs: int              |
+| + SnakeSpeedsUp: bool    (só PRO) |
+| + SpeedUpStepMs / MinSpeedMs: const int |
+| + WallsAreSolid: bool            |
+| + TargetScore: int?              |
+| + TracksHighScore: bool  (só PRO) |
+| + CurrentDifficulty: Difficulty  |
+| + directions: string             |
+| + ApplyDifficulty(Difficulty)    |
++----------------------------------+
 ```
 
 _(substituir por diagrama formal — Astah / draw.io / Visual Studio)_
@@ -321,6 +455,16 @@ ajustes finais foram feitos pelos integrantes.
 - "Desenhar o Snap e o score num cabeçalho que se mantém durante o jogo, na mesma
   tela do menu."
 - "Mudar o tamanho do jogo para um tabuleiro pequeno e deixar a cobra mais lenta."
+- "Tela de seleção de dificuldade (Fácil / Médio / PRO) que muda o tamanho da
+  arena, se a parede mata ou faz *wrap*, e a meta de pontos para vencer." →
+  enum `Difficulty`, `Settings.ApplyDifficulty`, estado `DifficultySelect`.
+- "Tela de Game Over e de Vitória mostrando pontuação e recorde, com opções de
+  jogar de novo (mesma dificuldade) e voltar ao menu." → estado `GameOver`,
+  `gameOverMenu`, `EndGame(bool victory)`.
+
+> Contribuição incorporada via **pull request** de um integrante do grupo (telas
+> de dificuldade, game over, vitória e pontuação/meta). O merge foi feito no
+> repositório; esta documentação foi atualizada em seguida para refletir o PR.
 
 ### 6.3. Critérios de revisão humana
 
@@ -330,8 +474,9 @@ ajustes finais foram feitos pelos integrantes.
   nomenclatura em `PascalCase`/`camelCase`); não reformatar trechos não tocados.
 - **Robustez:** tratar estado inválido (tick após game over, reinício de partida,
   objeto já descartado ao sair), reiniciar variáveis de movimento entre partidas.
-- **Compilação:** `dotnet build` sem erros; sem novos *warnings* introduzidos
-  (o único *warning* remanescente, `CS8618` em `Settings.cs`, é pré-existente).
+- **Compilação:** `dotnet build` sem erros e sem *warnings* (o `CS8618` que
+  existia em `Settings.cs` foi eliminado ao inicializar `directions` na
+  declaração — ver seção 4.3).
 
 ### 6.4. Evidências comparativas (com IA x sem IA)
 
@@ -362,3 +507,7 @@ na ferramenta de gestão.)_
 | 2026-09-04 | Pausa: botão "Pausar/Retomar" no cabeçalho, teclas Esc/Espaço/P, novo valor `Paused` em `GameState`, overlay "PAUSADO" sobre o tabuleiro. Removida a legenda de pontuação/recorde que era sobreposta ao usar o Snap. | `GameState.cs`, `GameHeader.cs`, `Form1.cs` |
 | 2026-09-04 | Tabuleiro com borda visível, fixo no topo e centralizado horizontalmente quando a janela é maior que ele. Corrigido repaint incompleto do menu/pausa ao redimensionar (`picCanvas.SizeChanged`). `picCanvas` passou a usar `Dock = Fill`, eliminando a margem fixa entre a janela e o canvas. | `Form1.cs`, `Form1.Designer.cs` |
 | 2026-09-04 | Cobra passa a nascer com 3 segmentos já alinhados no centro do tabuleiro (cabeça em `meio+1`, corpo em `meio`, rabo em `meio-1`), em vez de 11 segmentos com o corpo empilhado em `(0,0)`. Direção inicial trocada de `"left"` para `"right"` para evitar colisão da cabeça com o próprio corpo no primeiro movimento. | `Form1.cs` |
+| 2026-09-08 | **Dificuldade** (PR): enum `Difficulty` (`Facil`/`Medio`/`Pro`), tela de seleção (estado `DifficultySelect`), `Settings.ApplyDifficulty` define tamanho da arena, `WallsAreSolid` (parede mata x *wrap*) e `TargetScore` (meta de pontos). `MainMenu.Draw` passou a aceitar `title`/`subtitle`; `MenuOption` ganhou `Description` (dica no rodapé). | `Difficulty.cs` (novo); `Settings.cs`, `GameState.cs`, `MenuOption.cs`, `MainMenu.cs`, `Form1.cs` |
+| 2026-09-08 | **Telas de Game Over e de Vitória** (PR): novo valor `GameOver` em `GameState`; `Form1.EndGame(bool victory)` para o timer, atualiza o recorde e mostra o resultado ("GAME OVER" / "VOCE VENCEU!") com pontuação e recorde e as opções "Jogar novamente" / "Menu principal". Campo `lastGameWasVictory`; `ActiveMenu()` roteia teclado/mouse para o menu certo. | `GameState.cs`, `Form1.cs` |
+| 2026-09-08 | **Vitória por pontos** (PR): `EatFood` encerra a partida como vitória ao atingir `Settings.TargetScore` (Fácil = 10, Médio = 20; PRO sem meta). `picCanvas`/`ClientSize` ajustados para 418×468. | `Form1.cs`, `Form1.Designer.cs` |
+| 2026-09-08 | **Recorde e aceleração exclusivos do PRO**: `Settings.TracksHighScore` (só o PRO atualiza/exibe o recorde, no cabeçalho e na tela de resultado) e `Settings.SnakeSpeedsUp` (no PRO, `EatFood` reduz `gameTimer.Interval` em `SpeedUpStepMs` = 4 ms por maçã até o piso `MinSpeedMs` = 60 ms). Novo parâmetro `showHighScore` em `GameHeader.Draw`. Corrigidos os 4 *warnings* de anotação nula herdados do PR (`string?` em `MenuOption`/`MainMenu`, `MainMenu?` em `ActiveMenu`). | `Settings.cs`, `Form1.cs`, `GameHeader.cs`, `MainMenu.cs`, `MenuOption.cs` |
