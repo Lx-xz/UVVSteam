@@ -48,6 +48,10 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
 
             new Settings();
 
+            // Musica de fundo em loop durante toda a aplicacao. O volume cai
+            // para metade fora da partida (ver UpdateMusicVolume).
+            BackgroundMusic.Start();
+
             menu.AddOption("Jogar", ShowDifficultySelect);
             menu.AddOption("Sair", Close);
 
@@ -96,6 +100,7 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         private void ShowMenu()
         {
             state = GameState.Menu;
+            UpdateMusicVolume();
             gameTimer.Stop();
             menu.Reset();
             picCanvas.Invalidate();
@@ -105,6 +110,7 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         private void ShowDifficultySelect()
         {
             state = GameState.DifficultySelect;
+            UpdateMusicVolume();
             difficultyMenu.Reset();
             picCanvas.Invalidate();
         }
@@ -114,7 +120,26 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
         {
             Settings.ApplyDifficulty(difficulty);
             state = GameState.Playing;
+            UpdateMusicVolume();
             RestartGame();
+        }
+
+        /// <summary>
+        /// Deixa a musica de fundo no volume cheio durante a partida
+        /// (<see cref="GameState.Playing"/>) e pela metade em qualquer outra
+        /// tela — menu, escolha de dificuldade, pausa e game over. Deve ser
+        /// chamado sempre que <see cref="state"/> mudar.
+        /// </summary>
+        private void UpdateMusicVolume()
+        {
+            if (state == GameState.Playing)
+            {
+                BackgroundMusic.SetGameplayVolume();
+            }
+            else
+            {
+                BackgroundMusic.SetMenuVolume();
+            }
         }
 
         /// <summary>
@@ -192,12 +217,14 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
             if (state == GameState.Playing)
             {
                 state = GameState.Paused;
+                UpdateMusicVolume();
                 gameTimer.Stop();
                 picCanvas.Invalidate();
             }
             else if (state == GameState.Paused)
             {
                 state = GameState.Playing;
+                UpdateMusicVolume();
                 gameTimer.Start();
                 picCanvas.Invalidate();
             }
@@ -593,6 +620,7 @@ namespace Classic_Snakes_Game_Tutorial___MOO_ICT
 
             lastGameWasVictory = victory;
             state = GameState.GameOver;
+            UpdateMusicVolume();
             gameOverMenu.Reset();
             picCanvas.Invalidate();
         }

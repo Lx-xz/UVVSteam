@@ -6,7 +6,18 @@
     <RootNamespace>Classic_Snakes_Game_Tutorial___MOO_ICT</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
+    <!-- Necessario para System.Windows.Media.MediaPlayer, usado pela musica
+         de fundo (classe BackgroundMusic). So traz as bibliotecas de midia
+         do WPF; a interface do jogo continua sendo Windows Forms. -->
+    <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <!-- Copia a musica de fundo para a pasta de saida, ao lado do executavel. -->
+  <ItemGroup>
+    <None Update="track.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>

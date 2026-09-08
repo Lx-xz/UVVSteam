@@ -1,7 +1,7 @@
 # UVV Steam — Documentação do Jogo 23
 
 > Documento vivo. Deve ser atualizado a cada alteração feita no projeto.
-> Última atualização: 2026-09-08 (2ª revisão do dia)
+> Última atualização: 2026-09-08 (3ª revisão do dia — música de fundo)
 
 ---
 
@@ -60,6 +60,7 @@ o *high score*. As bordas do canvas fazem *wrap* (a cobra reaparece do lado opos
 | 2026-09-08 | 4 | Implementar tela de **"Game Over"** e tela de **"Vitória"** (estado `GameOver`, `gameOverMenu`, `EndGame(victory)`) | Concluído | Gabriel |
 | 2026-09-08 | 4 | **Pontuação / meta**: condição de vitória por pontos (`Settings.TargetScore`); tela de resultado mostra pontuação e recorde | Concluído | Gabriel |
 | 2026-09-08 | 4 | Restringir o **recorde** ao modo PRO e fazer a **cobra acelerar a cada maçã**, também só no PRO (`Settings.TracksHighScore`, `Settings.SnakeSpeedsUp`) | Concluído | Luiz e Gabriel |
+| 2026-09-08 | 5 | **Música de fundo** em loop (`track.mp3`) tocando durante todo o jogo, com volume reduzido à metade fora da partida (menu, dificuldade, pausa, game over) — classe `BackgroundMusic`, `Form1.UpdateMusicVolume` | Concluído | Luiz |
 
 > Manter esta tabela sincronizada com a ferramenta de gestão (prints como evidência).
 
@@ -80,7 +81,9 @@ o *high score*. As bordas do canvas fazem *wrap* (a cobra reaparece do lado opos
    **apenas no modo PRO** (sessão 4); os modos Fácil e Médio continuam com
    velocidade fixa.
 8. **Recorde (*high score*) exclusivo do modo PRO** — ✅ implementado (sessão 4).
-9. **Som** (efeitos e/ou música, com liga/desliga) — pendente.
+9. **Som** — 🔶 parcial: **música de fundo** em loop (`track.mp3`) implementada
+   (sessão 5), com volume reduzido à metade fora da partida. Ainda pendentes:
+   efeitos sonoros (comer, morrer) e um controle de liga/desliga.
 
 > A redução do tabuleiro para 20×20 e a lentidão inicial da cobra (120 ms) na
 > sessão 2 foram a base para o item 4: os valores foram movidos para
@@ -344,6 +347,44 @@ passam `Settings.TracksHighScore`), `GameHeader.cs` (novo parâmetro
   dentro da mesma execução: jogar Médio depois de um PRO não zera nem exibe o
   recorde, e voltar ao PRO o mostra de novo.
 
+### 4.8. Música de fundo
+
+**Descrição:** o jogo passa a tocar uma **música de fundo em loop contínuo**
+(`track.mp3`), iniciada junto com a janela e mantida durante toda a execução.
+O **volume tem dois patamares**: **cheio (100%)** enquanto a partida está em
+andamento (`GameState.Playing`) e **pela metade (50%)** em qualquer outra tela —
+menu principal, seleção de dificuldade, pausa e game over. A troca é automática,
+disparada a cada mudança de estado.
+
+| Aspecto | ANTES | DEPOIS |
+|---|---|---|
+| Áudio | Nenhum (o jogo era mudo) | Música de fundo em loop desde a abertura |
+| Volume | — | 100% durante a partida; 50% no menu, dificuldade, pausa e game over |
+| Onde o volume muda | — | `Form1.UpdateMusicVolume()`, chamado após cada atribuição a `state` (`ShowMenu`, `ShowDifficultySelect`, `StartNewGame`, `TogglePause`, `EndGame`) |
+| Arquivo de áudio | `track.mp3` presente na pasta, mas não usado nem versionado | Copiado para a pasta de saída (`CopyToOutputDirectory`) e carregado em tempo de execução |
+| Orientação a objetos | — | Nova classe estática `BackgroundMusic` isola toda a reprodução |
+
+**Arquivos novos:** `BackgroundMusic.cs`.
+**Arquivos alterados:** `Form1.cs` (`BackgroundMusic.Start()` no construtor, método
+`UpdateMusicVolume()` e chamadas nas transições de estado),
+`Classic Snakes Game Tutorial - MOO ICT.csproj` (`<UseWPF>true</UseWPF>` e
+`track.mp3` com `CopyToOutputDirectory`).
+
+**Detalhes:**
+
+- A reprodução usa `System.Windows.Media.MediaPlayer` (biblioteca de mídia do WPF,
+  habilitada por `<UseWPF>true</UseWPF>` no `.csproj`). Não é pacote NuGet: já
+  acompanha o .NET e decodifica MP3 sem dependência externa. Foi preferida ao
+  componente COM do Windows Media Player porque este exige o MSBuild do Visual
+  Studio e quebra o `dotnet build` pela linha de comando (erro `MSB4803`).
+- `MediaPlayer` não tem loop nativo: `BackgroundMusic` assina o evento
+  `MediaEnded` e reinicia a faixa (`Position = TimeSpan.Zero; Play();`).
+- Toda a classe é tolerante a falha: se `track.mp3` não existir ou o subsistema de
+  áudio falhar (por exemplo, edições "N" do Windows sem o Media Feature Pack), a
+  exceção é engolida e o jogo continua normalmente, apenas sem som.
+- `track.mp3` **precisa estar versionado no repositório** para a música funcionar
+  em outras máquinas após o `git pull`.
+
 ---
 
 ## 5. Modelagem UML
@@ -367,8 +408,10 @@ Casos de uso já cobertos:
   no modo PRO, o recorde; e escolher entre **Jogar novamente** e **Menu principal**.
 - **Bater o recorde no modo PRO** (modo sem meta; o recorde só é contado e
   exibido nele, e a cobra acelera a cada maçã).
+- **Ouvir a música de fundo** (em loop desde a abertura; o volume cai à metade
+  automaticamente fora da partida).
 
-Casos de uso planejados: **Ligar/desligar som**.
+Casos de uso planejados: **Ligar/desligar som** e **efeitos sonoros** (comer, morrer).
 
 ### 5.2. Diagrama de classes (estado atual)
 
@@ -391,9 +434,17 @@ Casos de uso planejados: **Ligar/desligar som**.
 | + ShowDifficultySelect()      |     | Pro                 |
 | + StartNewGame(Difficulty)    |     +---------------------+
 | + TogglePause()               |
-| + EndGame(victory: bool)      |     +---------------------------------+
-| + TakeSnapShot()              | 1 3 |            MainMenu             |
-+-------------------------------+---->+---------------------------------+
+| + EndGame(victory: bool)      |     +----------------------------+
+| + UpdateMusicVolume()         | 1 1 |   BackgroundMusic  «static» |
+| + TakeSnapShot()              |---->+----------------------------+
+|                               |     | + Start()                  |
+|                               |     | + SetGameplayVolume()      |
+|                               |     | + SetMenuVolume()          |
+|                               |     +----------------------------+
+|                               |
+|                               | 1 3 +---------------------------------+
+|                               |---->|            MainMenu             |
++-------------------------------+     +---------------------------------+
    | 1        | 1                     | - options: List<MenuOption>     |
    | 1        | *                     | + SelectedIndex: int            |
    v          v                       | + AddOption(label, Action, desc)|
@@ -461,6 +512,9 @@ ajustes finais foram feitos pelos integrantes.
 - "Tela de Game Over e de Vitória mostrando pontuação e recorde, com opções de
   jogar de novo (mesma dificuldade) e voltar ao menu." → estado `GameOver`,
   `gameOverMenu`, `EndGame(bool victory)`.
+- "Fazer `track.mp3` ser a música de fundo do jogo inteiro, em loop, com o volume
+  caindo pela metade quando estiver nos menus." → classe `BackgroundMusic`
+  (`MediaPlayer` do WPF), `Form1.UpdateMusicVolume()` nas transições de estado.
 
 > Contribuição incorporada via **pull request** de um integrante do grupo (telas
 > de dificuldade, game over, vitória e pontuação/meta). O merge foi feito no
@@ -511,3 +565,4 @@ na ferramenta de gestão.)_
 | 2026-09-08 | **Telas de Game Over e de Vitória** (PR): novo valor `GameOver` em `GameState`; `Form1.EndGame(bool victory)` para o timer, atualiza o recorde e mostra o resultado ("GAME OVER" / "VOCE VENCEU!") com pontuação e recorde e as opções "Jogar novamente" / "Menu principal". Campo `lastGameWasVictory`; `ActiveMenu()` roteia teclado/mouse para o menu certo. | `GameState.cs`, `Form1.cs` |
 | 2026-09-08 | **Vitória por pontos** (PR): `EatFood` encerra a partida como vitória ao atingir `Settings.TargetScore` (Fácil = 10, Médio = 20; PRO sem meta). `picCanvas`/`ClientSize` ajustados para 418×468. | `Form1.cs`, `Form1.Designer.cs` |
 | 2026-09-08 | **Recorde e aceleração exclusivos do PRO**: `Settings.TracksHighScore` (só o PRO atualiza/exibe o recorde, no cabeçalho e na tela de resultado) e `Settings.SnakeSpeedsUp` (no PRO, `EatFood` reduz `gameTimer.Interval` em `SpeedUpStepMs` = 4 ms por maçã até o piso `MinSpeedMs` = 60 ms). Novo parâmetro `showHighScore` em `GameHeader.Draw`. Corrigidos os 4 *warnings* de anotação nula herdados do PR (`string?` em `MenuOption`/`MainMenu`, `MainMenu?` em `ActiveMenu`). | `Settings.cs`, `Form1.cs`, `GameHeader.cs`, `MainMenu.cs`, `MenuOption.cs` |
+| 2026-09-08 | **Música de fundo**: classe estática `BackgroundMusic` toca `track.mp3` em loop (via `System.Windows.Media.MediaPlayer`, `<UseWPF>true</UseWPF>` no `.csproj`) desde a abertura da janela. `Form1.UpdateMusicVolume()` deixa o volume cheio durante a partida e pela metade no menu, dificuldade, pausa e game over; é chamado após cada mudança de `state`. `track.mp3` passa a ser copiado para a pasta de saída (`CopyToOutputDirectory`) e deve ser versionado. Reprodução tolerante a falha (jogo segue sem som se o áudio falhar). | `BackgroundMusic.cs` (novo); `Form1.cs`, `Classic Snakes Game Tutorial - MOO ICT.csproj` |
